@@ -42,24 +42,35 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Handle var X flags
-   Mux16(a=x, b=false, sel=zx, out=flaggedX1);
-   Not16(in=flaggedX1, out=notX);
-   Mux16(a=flaggedX1, b=notX, sel=nx, out=flaggedX2);
+    // Handle var X flags
+    Mux16(a=x, b=false, sel=zx, out=flaggedX1);
+    Not16(in=flaggedX1, out=notX);
+    Mux16(a=flaggedX1, b=notX, sel=nx, out=flaggedX2);
 
-   // Handle var Y flags
-   Mux16(a=y, b=false, sel=zy, out=flaggedY1);
-   Not16(in=flaggedY1, out=notY);
-   Mux16(a=flaggedY1, b=notY, sel=ny, out=flaggedY2);
+    // Handle var Y flags
+    Mux16(a=y, b=false, sel=zy, out=flaggedY1);
+    Not16(in=flaggedY1, out=notY);
+    Mux16(a=flaggedY1, b=notY, sel=ny, out=flaggedY2);
 
-   // flaggedal OUT options
-   Add16(a=flaggedX2, b=flaggedY2, out=sumXY);
-   And16(a=flaggedX2, b=flaggedY2, out=andXY);
+    // flaggedal OUT options
+    Add16(a=flaggedX2, b=flaggedY2, out=sumXY);
+    And16(a=flaggedX2, b=flaggedY2, out=andXY);
 
-   // Select desired OUT
-   Mux16(a=andXY, b=sumXY, sel=f, out=outCandidate);
+    // Select desired OUT
+    Mux16(a=andXY, b=sumXY, sel=f, out=outCandidate);
 
-   // Check for output negate flag (`no` flag)
-   Not16(in=outCandidate, out=notOutCandidate);
-   Mux16(a=outCandidate, b=notOutCandidate, sel=no, out=out);
-}
+    // Check for output negate flag (`no` flag)
+    Not16(in=outCandidate, out=notOutCandidate);
+    Mux16(a=outCandidate, b=notOutCandidate, sel=no, out=out, out[15]=MSB, out[0..7]=rByte, out[8..15]=lByte);
+
+    // Handle StatusCode
+    //  eval `zr` flag  
+    Or8Way(in=rByte, out=rByteOR);
+    Or8Way(in=lByte, out=lByteOR);
+    Or(a=rByteOR, b=lByteOR, out=zrNot);
+    Not(in=zrNot, out=zr);
+
+    //  eval `ng` flag - using two's complement properties
+    //   out < 0 iff MSB == 1
+    And(a=true, b=MSB, out=ng);
+}   
