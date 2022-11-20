@@ -15,8 +15,9 @@ CHIP RAM8 {
     OUT out[16];
 
     PARTS:
+    // Extracts the location of the register to be accessed, using DMux on given address
     DMux8Way(in=load, sel=address, a=a, b=b, c=c, d=d, e=e, f=f, g=g, h=h);
-
+    // Address the relevant register and determine it's read-write state
     Register(in=in, load=a, out=reg1);
     Register(in=in, load=b, out=reg2);
     Register(in=in, load=c, out=reg3);
@@ -25,6 +26,6 @@ CHIP RAM8 {
     Register(in=in, load=f, out=reg6);
     Register(in=in, load=g, out=reg7);
     Register(in=in, load=h, out=reg8);
-
+    // Set the relevant register to output using Mux
     Mux8Way16(a=reg1, b=reg2, c=reg3, d=reg4, e=reg5, f=reg6, g=reg7, h=reg8, sel=address, out=out);
 }

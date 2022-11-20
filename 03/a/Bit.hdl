@@ -14,6 +14,8 @@ CHIP Bit {
     OUT out;
 
     PARTS:
+    // Determine if loads bit with new data or preserve current state
     Mux(a=out1, b=in, sel=load, out=muxOut);
+    // Handle loopback output<->input
     DFF(in=muxOut, out=out1, out=out);
 }
