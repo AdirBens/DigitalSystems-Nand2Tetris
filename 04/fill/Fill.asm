@@ -8,14 +8,14 @@
 // i.e. writes "black" in every pixel. When no key is pressed, the
 // program clears the screen, i.e. writes "white" in every pixel.
 
-(SETINGS) // Sets i to hold the address of end of screen
+(SETINGS)       // Sets i to hold the address of end of screen
     @SCREEN
     D=A
-    @8192
+    @8192       // Number of pixels in Hack 8K pixels screen
     D=D+A
     @i
     M=D
-(KBD-LOOP)  // Check for user input
+(KBD-LOOP)      // Check for KBD interrupt
     @i
     D=M
     @SCREEN
@@ -29,8 +29,7 @@
     D;JGT
     @SET-WHITE
     D;JEQ
-
-(SET-BLACK)
+(SET-BLACK)    // Set pixel's color to black (-1 i.e. 1111111111111111)
     @i
     A=M
     M=-1
@@ -38,8 +37,7 @@
     M=M-1
     @KBD-LOOP
     0;JMP
-
-(SET-WHITE)
+(SET-WHITE)    // Set pixel's color to white (0 i.e. 0000000000000000)
     @i
     A=M
     M=0
@@ -47,5 +45,3 @@
     M=M-1
     @KBD-LOOP
     0;JMP
-
-// (*) idle logic?
