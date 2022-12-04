@@ -8,4 +8,4 @@ Projects of an extended version of a popular CS course known as Nand to Tetris.
 | [proj 02](https://github.com/AdirBens/DigitalSystems-Nand2Tetris/tree/main/02) | Boolean Arithmetic - Implements the Hack `ALU` chip |
 | [proj 03](https://github.com/AdirBens/DigitalSystems-Nand2Tetris/tree/main/03) | Sequential Logic - Implements `Bit`, `Registers`, `RAM` chips|
 | [proj 04](https://github.com/AdirBens/DigitalSystems-Nand2Tetris/tree/main/04) | Machine Language Programming - Implements `mult` and `fill` functions|
-| [proj 05](https://github.com/AdirBens/DigitalSystems-Nand2Tetris/tree/main/05) | Computer Archiceture - Implements `mult` and `fill` functionsComplete the construction of the Hack CPU and the Hack hardware platform, leading up to the top-most Computer chip|
+| [proj 05](https://github.com/AdirBens/DigitalSystems-Nand2Tetris/tree/main/05) | Computer Archiceture - Complete the construction of the Hack CPU and the Hack hardware platform, leading up to the top-most Computer chip. `CPU`, `MemorySpace` and `HackComputer`|
