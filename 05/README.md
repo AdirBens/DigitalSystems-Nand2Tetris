@@ -7,4 +7,4 @@
 ![Hack platform CPU](../chips-diagrams/CPU.png "Hack Platform CPU")
 
 ## Computer.hdl - The platform'stop-most chip
-![Hack platform Computer](../chips-diargrams/HackComputer.png "Hack Platform Computer")
+![Hack platform Computer](../chips-diagrams/HackComputer.png "Hack Platform Computer")
