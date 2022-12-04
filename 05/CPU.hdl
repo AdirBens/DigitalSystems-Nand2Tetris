@@ -39,5 +39,55 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    
+    //----------------------------------------------------------------------------------------
+    // D Register - 
+    //  * check if both `load` D-Reg bit and OpCode bit are set to be on
+    //  * if true input will load to D-Register, else D-Register preserve it's state.
+    //----------------------------------------------------------------------------------------
+    And(a=instruction[4], b=instruction[15], out=dRegLoad);
+    DRegister(in=aluOut, load=dRegLoad, out=dRegOut);
+    //----------------------------------------------------------------------------------------
+    // A Register - 
+    //  * assess op-code to determain if consider input as C-Instruction or A-Instruction
+    //  * check if A-Register need to be load (2nd dest bit is on)
+    //  >finaly:
+    //   1. determine propper A-Register's load flag
+    //   2. Route input: A-Instruction? A-Register <- instruction, else A-Registre <- ALU-OUT)
+    //---------------------------------------------------------------------------------------- 
+    And(a=instruction[5], b=instruction[15], out=CInstANDdestA); 
+    Not(in=instruction[15], out=NotOPCODE);
+    Or(a=NotOPCODE, b=CInstANDdestA, out=ARegLoad);
+    Mux16(a=instruction, b=aluOut, sel=instruction[15], out=detAinstOrCinst);
+    ARegister(in=detAinstOrCinst, load=ARegLoad, out[0..14]=addressM, out=aRegOut);
+    //----------------------------------------------------------------------------------------
+    // ALU - set input and flags and apply propper logic on input
+    //----------------------------------------------------------------------------------------
+    Mux16(a=aRegOut, b=inM, sel=instruction[12], out=mInOrARegOut);
+    ALU(x=dRegOut, y=mInOrARegOut, zx=instruction[11], nx=instruction[10], 
+        zy=instruction[9], ny=instruction[8], f=instruction[7], 
+        no=instruction[6], out=aluOut, out=outM, zr=zrOut, ng=ngOut);
+    //----------------------------------------------------------------------------------------   
+    // PC - handle ProgramCounter States
+    //------------------------------------------------------------------------------------
+    //  Eval JGT
+    Or(a=zrOut, b=ngOut, out=eqNeg);
+    Not(in=eqNeg, out=pos);
+    And(a=instruction[0], b=pos, out=jgt);
+    //  Eval JEQ
+    And(a=instruction[1], b=zrOut, out=jeq);
+    //  Eval JLT
+    And(a=instruction[2], b=ngOut, out=jlt);
+    //  Narrow to JLE
+    Or(a=jeq, b=jlt, out=jle);
+    //  Narrow to JGE
+    Or(a=jle, b=jgt, out=jge);
+    //  Determine if input is instruction
+    And(a=jge, b=instruction[15], out=loadPC);
+    PC(in=aRegOut, load=loadPC, inc=true, reset=reset, out[0..14]=pc[0..14], out[15]=false);
+    //  Write to M
+    And(a=instruction[3], b=instruction[15], out=writeM);
+    //----------------------------------------------------------------------------------------   
+    // END PC
+    //------------------------------------------------------------------------------------
 }
