@@ -1,4 +1,6 @@
+import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 
 /**
@@ -7,10 +9,12 @@ import java.util.Map;
  * particularly resolves Symbol into its actual Address in Hack's RAM and ROM spaces.
  */
 public class SymbolTable {
+    static Pattern validUserSymbol = Pattern.compile("^([[a-zA-Z]|[._$:]])([\\p{Alnum}|[._$:]])*$");
     private Map<String, Integer> symbols;
 
-
     public SymbolTable(){
+        symbols = new HashMap<>();
+        loadPreDefinedSymbols();
     }
 
     /**
@@ -21,6 +25,11 @@ public class SymbolTable {
      * @param address
      */
     public void addEntry(String symbol, int address){
+        if (validUserSymbol.matcher(symbol).find()){
+            symbols.put(symbol, address);
+        } else throw new IllegalArgumentException("[-] HackAssembler: " + symbol + " is illegal.\n" +
+                "A user-defined symbol is a sequence of letters, digits, underscore(_), dot(.), dollar-sign ($) " +
+                "and colon(:) that does not begin with digit");
     }
 
     /**
@@ -29,7 +38,7 @@ public class SymbolTable {
      * @return
      */
     public boolean contains(String symbol){
-        return true;
+        return symbols.containsKey(symbol);
     }
 
     /**
@@ -38,7 +47,9 @@ public class SymbolTable {
      * @return decimal RAM address if symbol exists in table, else -1
      */
     public int getDecimalAddress(String symbol){
-        return 0;
+        if (contains(symbol)){
+            return symbols.get(symbol);
+        } else return -1;
     }
 
     /**
@@ -47,7 +58,10 @@ public class SymbolTable {
      * @return 16Bits Binary RAM address if symbol exists in table, else ""
      */
     public String getBinaryAddress(String symbol){
-        return "";
+        int dec = getDecimalAddress(symbol);
+        if (dec != -1){
+            return String.format("%16s", Integer.toBinaryString(dec)).replace(' ', '0');
+        } else return "";
     }
 
     /**
