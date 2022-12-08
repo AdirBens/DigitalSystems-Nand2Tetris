@@ -70,15 +70,12 @@ public class HackAssembler {
 
         while (parser.hasMoreCommands()){
             parser.advance();
-            switch (parser.commandType()){
-                case COMMENT, EMPTY:
-                    continue;
-                case L_COMMAND: symbolTable.addEntry(parser.symbol(), ROMAddress);
-                    symbolsDetected++;
-                    break;
-                case A_COMMAND, C_COMMAND: ROMAddress++;
-                    break;
-                default: break;
+            parser.commandType();
+            if (parser.currentCommandType == Command.L_COMMAND) {
+                symbolTable.addEntry(parser.symbol(), ROMAddress);
+                symbolsDetected++;
+            } else if (parser.currentCommandType == Command.A_COMMAND || parser.currentCommandType == Command.C_COMMAND) {
+                ROMAddress++;
             }
         }
         parser.close();
