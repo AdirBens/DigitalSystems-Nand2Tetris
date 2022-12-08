@@ -2,3 +2,5 @@
 *.out
 *.tst
 *.hack
+*out/
+.idea/
