@@ -37,6 +37,7 @@ public class Parser {
         if (hasMoreCommands()){
             currentCommand = asmC.nextLine();
             currentCommand = removeInLineComments(currentCommand);
+            currentCommandType = commandType();
         }
     }
 
