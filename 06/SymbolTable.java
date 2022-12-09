@@ -9,9 +9,9 @@ import java.util.regex.Pattern;
  * particularly resolves Symbol into its actual Address in Hack's RAM and ROM spaces.
  */
 public class SymbolTable {
-    static Pattern validUserSymbol = Pattern.compile("^([[a-zA-Z]|[._$:]])([\\p{Alnum}|[._$:]])*$");
-    private Map<String, Integer> symbols;
-    int preDefSymbols = 16;
+    private static final Pattern validUserSymbol = Pattern.compile("^([[a-zA-Z]|[._$:]])([\\p{Alnum}|[._$:]])*$");
+    private final Map<String, Integer> symbols;
+    final int preDefSymbols = 16;
 
     public SymbolTable(){
         symbols = new HashMap<>();
