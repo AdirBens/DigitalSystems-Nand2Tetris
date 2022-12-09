@@ -25,7 +25,7 @@ public class HackAssembler {
 
         encoder = new Code();
         symbolTable = new SymbolTable();
-        RAMAddress = 16;
+        RAMAddress = symbolTable.preDefSymbols;
         ROMAddress = 0;
     }
 
@@ -68,14 +68,21 @@ public class HackAssembler {
         int symbolsDetected = 0;
         Parser parser = new Parser(asm);
 
-        while (parser.hasMoreCommands()){
+        while (parser.hasMoreCommands()) {
             parser.advance();
-            parser.commandType();
-            if (parser.currentCommandType == Command.L_COMMAND) {
-                symbolTable.addEntry(parser.symbol(), ROMAddress);
-                symbolsDetected++;
-            } else if (parser.currentCommandType == Command.A_COMMAND || parser.currentCommandType == Command.C_COMMAND) {
-                ROMAddress++;
+            switch (parser.currentCommandType){
+                case COMMENT, EMPTY:
+                    continue;
+                case L_COMMAND:
+                    {
+                        symbolTable.addEntry(parser.symbol(), ROMAddress);
+                        symbolsDetected++;
+                    } break;
+                case C_COMMAND, A_COMMAND:
+                    {
+                        ROMAddress++;
+                    } break;
+                default: break;
             }
         }
         parser.close();
@@ -94,21 +101,27 @@ public class HackAssembler {
 
         while (parser.hasMoreCommands()){
             parser.advance();
-            parser.commandType();
-
             String command;
-            if (parser.currentCommandType == Command.A_COMMAND){
-                command = parser.symbol();
-                int cNum = toNumber(command);
-                if (cNum != -1){ // A is a numeric address
-                    command = String.format("%16s", Integer.toBinaryString(cNum)).replace(' ', '0');
-                } else {          // A is symbolic
-                    if (!symbolTable.contains(command)) symbolTable.addEntry(command, RAMAddress++);
-                    command = symbolTable.getBinaryAddress(command);
-                }
-            } else if (parser.currentCommandType == Command.C_COMMAND) {
-                command = "111" + encoder.comp(parser.comp()) + encoder.dest(parser.dest()) + encoder.jump(parser.jump());
-            } else continue;
+
+            switch (parser.currentCommandType){
+                case A_COMMAND:
+                    {   // Checks if A is symbolic or numeric address
+                        command = parser.symbol();
+                        int cNum = toNumber(command);
+                        if (cNum != -1){  // which means A is a numeric address
+                            command = String.format("%16s", Integer.toBinaryString(cNum)).replace(' ', '0');
+                        } else {          // A is symbolic
+                            if (!symbolTable.contains(command)) symbolTable.addEntry(command, RAMAddress++);
+                            command = symbolTable.getBinaryAddress(command);
+                        }
+                    } break;
+                case C_COMMAND:
+                    {
+                        String prefix = "111";
+                        command = prefix + encoder.comp(parser.comp()) + encoder.dest(parser.dest()) + encoder.jump(parser.jump());
+                    } break;
+                default: continue;
+            }
 
             writeLine(command);
             commandsAssembled++;
@@ -132,11 +145,8 @@ public class HackAssembler {
      * @return s decimal value if s contains only digits, else return -1
      */
     private int toNumber(String s){
-        try {
-            return Integer.parseInt(s);
-        } catch (NumberFormatException e){
-            return -1;
-        }
+        try { return Integer.parseInt(s); }
+        catch (NumberFormatException e){ return -1; }
     }
 
     /**
