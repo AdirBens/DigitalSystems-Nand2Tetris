@@ -13,7 +13,7 @@ enum Command{
     A_COMMAND(Pattern.compile("^@(.*)$")),
     C_COMMAND(Pattern.compile("((^[ADM]{0,3})=)?([01ADM!-]?[-+&|]?[01ADM])(;(J[EGLMN][TQEP]$))?"));
 
-    public Pattern pattern;
+    public final Pattern pattern;
     Command(Pattern commandPattern){
         pattern = commandPattern;
     }
