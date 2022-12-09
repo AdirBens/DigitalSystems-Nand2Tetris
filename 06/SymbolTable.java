@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 public class SymbolTable {
     static Pattern validUserSymbol = Pattern.compile("^([[a-zA-Z]|[._$:]])([\\p{Alnum}|[._$:]])*$");
     private Map<String, Integer> symbols;
+    int preDefSymbols = 16;
 
     public SymbolTable(){
         symbols = new HashMap<>();
