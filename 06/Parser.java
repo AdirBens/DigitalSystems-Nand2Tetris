@@ -46,7 +46,7 @@ public class Parser {
      * @return Returns the type of the current command (a member of Command enum):
      *         (-) A_COMMAND for @Xxx where Xxx is either a symbol or a decimal number.
      *         (-) C_COMMAND for dest=comp;jump.
-     *         (-) L_COMMAND (which it pseudo-command) for (Xxx) wher Xxx is a symbol.
+     *         (-) L_COMMAND (which it pseudo-command) for (Xxx) where Xxx is a symbol.
      *         if current command does not fit any member of Command enum, returns null;
      */
     public Command commandType(){
@@ -67,8 +67,7 @@ public class Parser {
         String symbol = "null";
         if ((currentCommandType == Command.L_COMMAND) || (currentCommandType == Command.A_COMMAND)){
             Matcher m = currentCommandType.pattern.matcher(currentCommand);
-            m.find();
-            symbol = m.group(1);
+            symbol = (m.find())? m.group(1) : "null";
         }
         symbol = (symbol == null)? "null" : symbol;
         return symbol;
@@ -82,8 +81,7 @@ public class Parser {
         String dest = "null";
         if ((currentCommandType == Command.C_COMMAND)){
             Matcher m = currentCommandType.pattern.matcher(currentCommand);
-            m.find();
-            dest = m.group(2);
+            dest = (m.find())? m.group(2) : "null";
         }
         dest = (dest == null)? "null" : dest;
         return dest;
@@ -97,8 +95,7 @@ public class Parser {
         String comp = "null";
         if ((currentCommandType == Command.C_COMMAND)){
             Matcher m = currentCommandType.pattern.matcher(currentCommand);
-            m.find();
-            comp = m.group(3);
+            comp = (m.find())? m.group(3) : "null";
         }
         comp = (comp == null)? "null" : comp;
         return comp;
@@ -112,8 +109,7 @@ public class Parser {
         String jump = "null";
         if ((currentCommandType == Command.C_COMMAND)){
             Matcher m = currentCommandType.pattern.matcher(currentCommand);
-            m.find();
-            jump = m.group(5);
+            jump = (m.find())? m.group(5) : "null";
         }
         jump = (jump == null)? "null" : jump;
         return jump;
