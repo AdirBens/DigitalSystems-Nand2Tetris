@@ -127,11 +127,7 @@ public class Parser {
      * @return The given line stripped from in-line comments.
      */
     private String removeInLineComments(String line){
-        Pattern inlineCommentP = Pattern.compile("(^.*)//.*$");
-        Matcher commentMatcher = inlineCommentP.matcher(line);
-        if (commentMatcher.find()){
-            line = commentMatcher.group(1);
-        }
-        return line.strip();
+        line = line.split("//")[0];
+        return line.trim();
     }
 }
