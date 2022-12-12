@@ -71,17 +71,17 @@ public class HackAssembler {
         while (parser.hasMoreCommands()) {
             parser.advance();
             switch (parser.currentCommandType){
-                case COMMENT, EMPTY:
-                    continue;
+                case COMMENT: continue;
+                case EMPTY:   continue;
                 case L_COMMAND:
                     {
                         symbolTable.addEntry(parser.symbol(), ROMAddress);
                         symbolsDetected++;
                     } break;
-                case C_COMMAND, A_COMMAND:
-                    {
-                        ROMAddress++;
-                    } break;
+                case C_COMMAND:  ROMAddress++;
+                    break;
+                case  A_COMMAND: ROMAddress++;
+                    break;
                 default: break;
             }
         }
