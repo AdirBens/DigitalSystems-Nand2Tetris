@@ -4,3 +4,4 @@
 *.hack
 *out/
 .idea/
+.vscode/
