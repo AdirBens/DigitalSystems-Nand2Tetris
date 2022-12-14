@@ -14,6 +14,11 @@ public class HackAssembler {
     private int ROMAddress;
     private int RAMAddress;
 
+    /**
+     * HackAssembler is an assembler object holds the responsibility of orchestrating the assembling process
+     * @param asmFile Hack Assembly program file
+     * @throws IOException if reading the given file is failed
+     */
     public HackAssembler(File asmFile) throws IOException {
         if (asmFile.exists() && (asmFile.getName().endsWith(".asm"))){
             asm = asmFile;
@@ -31,8 +36,8 @@ public class HackAssembler {
 
     /**
      * USAGE: > java HackAssembler <path to Prog.asm>.
-     * @param args
-     * @throws IOException
+     * @param args path to Prog.asm file as a command line argument
+     * @throws IOException if reading the given file is failed
      */
     public static void main(String[] args) throws IOException {
         if (args.length != 1){
@@ -46,7 +51,7 @@ public class HackAssembler {
     /**
      * Run an entire assembling process - starts with preRun process which collects symbols without produce code,
      * and after that, run full assembling sweep and translate HackAssembly commands into Hack-MachineLanguage binary code.
-     * @throws IOException
+     * @throws IOException if reading the given file is failed
      */
     private void assemble() throws IOException {
         log("preforms pre assemble process");
@@ -131,8 +136,8 @@ public class HackAssembler {
 
     /**
      * Write to file and add newline after it.
-     * @param line
-     * @throws IOException
+     * @param line a line of Hack assembly code
+     * @throws IOException if writing to file is failed
      */
     private void writeLine(String line) throws IOException {
         HackWriter.write(line);
@@ -158,7 +163,7 @@ public class HackAssembler {
 
     /**
      * prints log message to stdout.
-     * @param message
+     * @param message a message to prompt to stdout
      */
     private void log(String message){
         System.out.println("[+] HackAssembler: " + message);
