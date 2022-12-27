@@ -16,7 +16,6 @@ class VMTranslator(object):
         self.vm_files = self._load_program_path(program_path)
         if os.path.isdir(program_path):
             self._base_name = os.path.join(program_path, os.path.basename(program_path)).split('.')[0] + '.asm'
-            self._base_name = f'{program_path}/{program_path.split("/")[-1]}.asm'
         else:
             self._base_name = program_path
         self.parser = None
@@ -27,7 +26,7 @@ class VMTranslator(object):
         Orchestrate Translation VM Commands to HackAssembly process.
         Returns: None.
         """
-        # self.code_writer.write_init()
+        self.code_writer.write_init()
         for vm_file in self.vm_files:
             self._set_file_to_modules(vm_file)
             while self.parser.has_more_commands():
@@ -108,12 +107,13 @@ class VMTranslator(object):
             vm_files = [program_path]
         else:
             vm_files = glob(r'{}/*.vm'.format(program_path))
-            if not any([file.endswith('Main.vm') for file in vm_files]):
-                raise FileNotFoundError('[-] VMTranslator: Main.vm is missing.')
-            elif not any([file.endswith('Sys.vm') for file in vm_files]):
-                raise FileNotFoundError('[-] VMTranslator: Sys.vm is missing.')
-            else:
-                vm_files.sort(key=lambda file: -2 if file.endswith('Sys.vm') else 1)
+            # if not any([file.endswith('Main.vm') for file in vm_files]):
+                # raise FileNotFoundError('[-] VMTranslator: Main.vm is missing.')
+            # elif not any([file.endswith('Sys.vm') for file in vm_files]):
+            #     raise FileNotFoundError('[-] VMTranslator: Sys.vm is missing.')
+            # pass
+            # else:
+            vm_files.sort(key=lambda file: -2 if file.endswith('Sys.vm') else 1)
         return vm_files
 
 def main():

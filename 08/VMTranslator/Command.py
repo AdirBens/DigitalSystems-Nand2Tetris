@@ -41,7 +41,7 @@ class Command(object):
         arg1 = None
         if self._command_type == 'C_ARITHMETIC':
             arg1 = self._extract_operation()
-        elif self._command_type != 'C_RETURN':
+        elif self._command_type not in ['C_RETURN', 'C_INIT']:
             arg1 = self._vm_string.split()[1]
         return arg1
 
@@ -80,6 +80,6 @@ class Command(object):
         """
         arithmetic = {k: 'C_ARITHMETIC' for k in ['add', 'sub', 'and', 'or', 'neg', 'not', 'eq', 'gt', 'lt']}
         commands = {k: 'C_{}'.format(k.split('-')[0].upper())
-                    for k in ['push', 'pop', 'label', 'goto', 'if-goto', 'function', 'return', 'call']}
+                    for k in ['push', 'pop', 'label', 'goto', 'if-goto', 'function', 'return', 'call', 'init']}
         commands.update(arithmetic)
         return commands

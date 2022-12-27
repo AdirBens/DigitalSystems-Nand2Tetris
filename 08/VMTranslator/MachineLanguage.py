@@ -55,7 +55,7 @@ class MachineLanguage(object):
             # LABEL
             'LABEL': ['({label})'],
             # GOTO
-            'GOTO': ['@{dest}', 'D;JMP'],
+            'GOTO': ['@{dest}', '0;JMP'],
             # IF-GOTO
             'IF': [pop_d, '@{dest}', 'D;JNE'],
             # CALL
@@ -64,24 +64,25 @@ class MachineLanguage(object):
                      '@ARG', 'D=M', push_d,
                      '@THIS', 'D=M', push_d,
                      '@THAT', 'D=M', push_d,
-                     '@5', 'D=A', '@{num_args}', 'D=A-D', '@SP', 'D=M-D', '@ARG', 'M=D',
+                     '@SP', 'D=M', '@{num_args}', 'D=D-A', '@5', 'D=D-A', '@ARG', 'M=D',
                      '@SP', 'D=M', '@LCL', 'M=D',
-                     '@{function_name}', 'D;JMP',
+                     '@{function_name}', '0;JMP',
                      '({function_name}_return_address{label_counter})'],
             # FUNCTION
-            'FUNCTION': ['({function_name})', 'D=0'],
+            'FUNCTION': ['({function_name})'],
             # RETURN
             'RETURN': ['@LCL', 'D=M', '@FRAME', 'M=D',
-                       '@5', 'A=D-A', 'D=M', '@FRAME', 'M=D', '@RET', 'M=D',
-                       pop_d, '@ARG', 'A=M', 'M=D',
+                       '@5', 'D=D-A', 'A=D', 'D=M',  '@RET', 'M=D',
+                       pop_d, '@ARG', 'A=M', 'M=D', '@ARG',
                        'D=M+1', '@SP', 'M=D',
-                       '@FRAME', 'DAM=M-1', 'D=M', '@THAT', 'M=D',
-                       '@FRAME', 'DAM=M-1', 'D=M', '@THIS', 'M=D',
-                       '@FRAME', 'DAM=M-1', 'D=M', '@ARG', 'M=D',
-                       '@FRAME', 'DAM=M-1', 'D=M', '@LCL', 'M=D',
-                       '@RET', 'A=M', 'D;JMP'
-                       ]
-        })
+                       '@FRAME', 'D=M-1', 'A=D', 'D=M', '@THAT', 'M=D',
+                       '@2', 'D=A', '@FRAME', 'D=M-D', 'A=D', 'D=M', '@THIS', 'M=D',
+                       '@3', 'D=A', '@FRAME', 'D=M-D', 'A=D', 'D=M', '@ARG', 'M=D',
+                       '@4','D=A', '@FRAME', 'D=M-D', 'A=D', 'D=M', '@LCL', 'M=D',
+
+                       '@RET', 'A=M', '0;JMP']
+
+            })
         self._line_seperator()
 
     def _line_seperator(self) -> None:

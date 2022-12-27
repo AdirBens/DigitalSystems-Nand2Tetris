@@ -18,7 +18,7 @@ class CodeWriter(object):
         self._conditions_counter = 1
         self._label_counter=1
         self._asm_lines_written = 0
-        self._in_function = []
+        self._curr_function = ""
 
     def set_file_name(self, file_name: str) -> None:
         """
@@ -62,10 +62,10 @@ class CodeWriter(object):
         This code must be placed at the beginning of the output ﬁle.
         Returns: None.
         """
-        command = Command("call Sys.init 0")
-        cmd_str = self._templates['init']['SYS_INIT']
+        command = Command("init")
+        cmd_str = self._templates['init']['C_INIT']
         self._output_file.write(self._comment_code_block(command, cmd_str))
-        self.write_call(command)
+        self.write_call(Command("call Sys.init 0"))
         self._asm_lines_written += cmd_str.count("\n")
 
     def write_label(self, command: Command) -> None:
@@ -74,7 +74,7 @@ class CodeWriter(object):
         Args: label (str) - string represents the label
         Returns: None.
         """
-        label = "{}${}".format(self._in_function[-1], command.arg1) if len(self._in_function) else "{}".format(command.arg1)
+        label = "{}${}".format(self._curr_function, command.arg1) if len(self._curr_function) else "{}".format(command.arg1)
         cmd_str = self._templates[command.operation][command.command_type].format(label=label)
         self._output_file.write(self._comment_code_block(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
@@ -86,7 +86,7 @@ class CodeWriter(object):
         Returns: None.
         """
 
-        label = "{}${}".format(self._in_function[-1], command.arg1) if len(self._in_function) else "{}".format(command.arg1)
+        label = "{}${}".format(self._curr_function, command.arg1) if len(self._curr_function) else "{}".format(command.arg1)
         cmd_str = self._templates[command.operation][command.command_type].format(dest=label)
         self._output_file.write(self._comment_code_block(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
@@ -123,7 +123,6 @@ class CodeWriter(object):
         cmd_str = self._templates[command.operation][command.command_type]
         self._output_file.write(self._comment_code_block(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
-        self._in_function.pop()
 
     def write_function(self, command: Command) -> None:
         """
@@ -134,10 +133,9 @@ class CodeWriter(object):
         Returns: None.
         :param command:
         """
-        self._in_function.append(command.arg1)
-        cmd_str = self._templates[command.operation][command.command_type].format(function_name=command.arg1,
-                                                                                  label_counter=self._label_counter)
-        self._label_counter += 1
+
+        self._curr_function = command.arg1
+        cmd_str = self._templates[command.operation][command.command_type].format(function_name=command.arg1)
         cmd_str += int(command.arg2) * (self._asm.PushD + "\n")
         self._output_file.write(self._comment_code_block(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
@@ -214,6 +212,6 @@ class CodeWriter(object):
             'call': {"C_CALL": self._asm.CALL},
             'function': {"C_FUNCTION": self._asm.FUNCTION},
             'return': {"C_RETURN": self._asm.RETURN},
-            'init': {"SYS_INIT": self._asm.INIT}
+            'init': {"C_INIT": self._asm.INIT}
             #TODO: goto is in if-goto !!!!!!!
         }
