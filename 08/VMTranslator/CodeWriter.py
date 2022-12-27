@@ -202,10 +202,10 @@ class CodeWriter(object):
             #Branching Operations
             'label': {"C_LABEL": self._asm.LABEL},
             'goto': {"C_GOTO": self._asm.GOTO},
-            'if_goto': {"C_IF", self._asm.IF},
-            'call': {"C_CALL", self._asm.CALL},
-            'function': {"C_FUNCTION", self._asm.FUNCTION},
-            'return': {"C_RETURN", self._asm.RETURN},
-            'init': {"SYS_INIT", self._asm.INIT}
+            'if_goto': {"C_IF": self._asm.IF},
+            'call': {"C_CALL": self._asm.CALL},
+            'function': {"C_FUNCTION": self._asm.FUNCTION},
+            'return': {"C_RETURN": self._asm.RETURN},
+            'init': {"SYS_INIT": self._asm.INIT}
             #TODO: goto is in if-goto !!!!!!!
         }
