@@ -1,6 +1,7 @@
+from os import path
+
 from Command import Command
 from MachineLanguage import MachineLanguage
-from os import path
 
 
 class CodeWriter(object):
@@ -72,7 +73,8 @@ class CodeWriter(object):
         Args: label (str) - string represents the label
         Returns: None.
         """
-        label = "{}${}".format(self._curr_function, command.arg1) if len(self._curr_function) else "{}".format(command.arg1)
+        label = "{}${}".format(self._curr_function, command.arg1) if len(self._curr_function) \
+                                                                  else "{}".format(command.arg1)
         cmd_str = self._templates[command.operation][command.command_type].format(label=label)
         self._output_file.write(self._comment_code_block(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
@@ -80,11 +82,11 @@ class CodeWriter(object):
     def write_goto(self, command: Command) -> None:
         """
         Writes assembly code that effects the `goto` command.
-        Args: label (str) - string represents the label
+        Args: command (Command): command object
         Returns: None.
         """
-
-        label = "{}${}".format(self._curr_function, command.arg1) if len(self._curr_function) else "{}".format(command.arg1)
+        label = "{}${}".format(self._curr_function, command.arg1) if len(self._curr_function) \
+                                                                  else "{}".format(command.arg1)
         cmd_str = self._templates[command.operation][command.command_type].format(dest=label)
         self._output_file.write(self._comment_code_block(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
@@ -92,7 +94,7 @@ class CodeWriter(object):
     def write_if(self, command: Command) -> None:
         """
         Writes assembly code that effects the `if-goto` command.
-        Args: label (str) - string represents the label
+        Args: command (Command): command object
         Returns: None.
         """
         self.write_goto(command)
@@ -100,9 +102,7 @@ class CodeWriter(object):
     def write_call(self, command: Command) -> None:
         """
         Writes assembly code that effects the `call` command.
-        Args:
-            function_name (str) - the name of the callee function
-            num_args (int) - the number of arguments the callee function takes
+        Args: command (Command): command object
         Returns: None.
         """
         cmd_str = self._templates[command.operation][command.command_type].format(function_name=command.arg1,
@@ -115,9 +115,9 @@ class CodeWriter(object):
     def write_return(self, command: Command) -> None:
         """
         Writes assembly code that effects the `return` command.
+        Returns: command (Command): command object
         Returns: None.
         """
-        # TODO: Implement CodeWriter.write_return
         cmd_str = self._templates[command.operation][command.command_type]
         self._output_file.write(self._comment_code_block(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
@@ -125,11 +125,8 @@ class CodeWriter(object):
     def write_function(self, command: Command) -> None:
         """
         Writes assembly code that effects the `function` command.
-        Args:
-            function_name (str) - the name of the function been called
-            num_locals (int) - the number of function's local variables
+        Args: command (Command): command object
         Returns: None.
-        :param command:
         """
 
         self._curr_function = command.arg1
@@ -159,8 +156,8 @@ class CodeWriter(object):
             codeblock (str) - the asm codeblock produced from the command
         Returns: (str) commented code block
         """
-        return "\n".join(['', '// For VM Command {}', '//  Produce {} ASM CodeBlock', codeblock]).format(cmd.__str__(),
-                                                                                                         cmd.command_type)
+        return "\n".join(['', '// For VM Command {}', '//  Produce {} ASM CodeBlock',
+                          codeblock]).format(cmd.__str__(), cmd.command_type)
 
     @staticmethod
     def load_std_mapping() -> dict:
@@ -202,7 +199,6 @@ class CodeWriter(object):
             'eq': {"C_ARITHMETIC": self._asm.EQ},
             'gt': {"C_ARITHMETIC": self._asm.GT},
             'lt': {"C_ARITHMETIC": self._asm.LT},
-
             #Branching Operations
             'label': {"C_LABEL": self._asm.LABEL},
             'goto': {"C_GOTO": self._asm.GOTO},
