@@ -104,7 +104,7 @@ def main():
                             help="path to a .vm file or directory containing .vm files")
     args = cli_parser.parse_args()
 
-    vm_translator = VMTranslator(args.program_name)
+    vm_translator = VMTranslator(args.program_path)
     vm_translator.translate()
 
 if __name__ == "__main__":
