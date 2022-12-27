@@ -81,7 +81,7 @@ class MachineLanguage(object):
                        '@FRAME', 'DA=M-1', '@THIS', 'M=D',
                        '@FRAME', 'DA=M-1', '@ARG', 'M=D',
                        '@FRAME', 'DA=M-1', '@LCL', 'M=D',
-                       '@RET', 'D;JMP'
+                       '@RET', 'A=M', 'D;JMP'
                        ]
         })
         self._line_seperator()
