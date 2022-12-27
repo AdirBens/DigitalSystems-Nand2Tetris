@@ -15,7 +15,7 @@ class VMTranslator(object):
     def __init__(self, program_path: str):
         self.vm_files = self._load_program_path(program_path)
         if os.path.isdir(program_path):
-            self._base_name = f'{program_path}/{program_path.split("/")[-1]}.asm'
+            self._base_name = os.path.join(program_path, os.path.basename(program_path)).split('.')[0] + '.asm'
         else:
             self._base_name = program_path
         self.parser = None
