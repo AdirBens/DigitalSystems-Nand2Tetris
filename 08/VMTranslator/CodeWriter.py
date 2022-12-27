@@ -157,8 +157,8 @@ class CodeWriter(object):
             codeblock (str) - the asm codeblock produced from the command
         Returns: (str) commented code block
         """
-        return "\n".join(['// For VM Command {}', '//  Produce {} ASM CodeBlock', codeblock]).format(cmd.__str__(),
-                                                                                                     cmd.command_type)
+        return "\n".join(['', '// For VM Command {}', '//  Produce {} ASM CodeBlock', codeblock]).format(cmd.__str__(),
+                                                                                                         cmd.command_type)
 
     @staticmethod
     def load_std_mapping() -> dict:
