@@ -42,9 +42,6 @@ class Command(object):
             arg1 = self._extract_operation()
         elif self._command_type != 'C_RETURN':
             arg1 = self._vm_string.split()[1]
-        else:
-            # TODO: at Command._extract_arg1 - deal with case of command_type == "C_RETURN"
-            pass
         return arg1
 
     def _extract_arg2(self) -> str:

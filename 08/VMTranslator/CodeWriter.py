@@ -15,6 +15,7 @@ class CodeWriter(object):
         self._base_name = path.basename(self._output_file.name)[:-4]
         self._conditions_counter = 1
         self._asm_lines_written = 0
+        self._in_function = []
 
     def set_file_name(self, file_name: str) -> None:
         """
@@ -58,37 +59,42 @@ class CodeWriter(object):
         This code must be placed at the beginning of the output ﬁle.
         Returns: None.
         """
-        # TODO: Implement CodeWriter.write_init | set SP to 256 and call Sys.init
-        pass
+        command = Command("call Sys.init 0")
+        cmd_str = self._templates['init']['SYS_INIT']
+        self._output_file.write(self._comment_code_block(cmd_str))
+        self.write_call(command)
+        self._asm_lines_written += cmd_str.count("\n")
 
-    def write_label(self, label: str) -> None:
+    def write_label(self, command: Command) -> None:
         """
         Writes assembly code that effects the `label` command.
         Args: label (str) - string represents the label
         Returns: None.
         """
-        # TODO: Implement CodeWriter.write_label
-        pass
+        label = "{}${}".format(self._in_function[-1], command.arg1) if len(self._in_function) else command.arg1
+        cmd_str = self._templates[command.operation][command.command_type].format(label=label)
+        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._asm_lines_written += cmd_str.count("\n")
 
-    def write_goto(self, label: str) -> None:
+    def write_goto(self, command: Command) -> None:
         """
         Writes assembly code that effects the `goto` command.
         Args: label (str) - string represents the label
         Returns: None.
         """
-        # TODO: Implement CodeWriter.write_goto
-        pass
+        cmd_str = self._templates[command.operation][command.command_type].format(dest=command.arg1)
+        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._asm_lines_written += cmd_str.count("\n")
 
-    def write_if(self, label: str) -> None:
+    def write_if(self, command: Command) -> None:
         """
         Writes assembly code that effects the `if-goto` command.
         Args: label (str) - string represents the label
         Returns: None.
         """
-        # TODO: Implement CodeWriter.write_if
-        pass
+        self.write_goto(command)
 
-    def write_call(self, function_name: str, num_args: int) -> None:
+    def write_call(self, command: Command) -> None:
         """
         Writes assembly code that effects the `call` command.
         Args:
@@ -97,17 +103,23 @@ class CodeWriter(object):
         Returns: None.
         """
         # TODO: Implement CodeWriter.write_call
-        pass
+        cmd_str = self._templates[command.operation][command.command_type].format(function_name=command.arg1,
+                                                                                  num_args=command.arg2)
+        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._asm_lines_written += cmd_str.count("\n")
 
-    def write_return(self) -> None:
+    def write_return(self, command: Command) -> None:
         """
         Writes assembly code that effects the `return` command.
         Returns: None.
         """
         # TODO: Implement CodeWriter.write_return
-        pass
+        cmd_str = self._templates[command.operation][command.command_type]
+        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._asm_lines_written += cmd_str.count("\n")
+        self._in_function.pop()
 
-    def write_function(self, function_name: str, num_locals: int) -> None:
+    def write_function(self, command: Command) -> None:
         """
         Writes assembly code that effects the `function` command.
         Args:
@@ -115,8 +127,11 @@ class CodeWriter(object):
             num_locals (int) - the number of function's local variables
         Returns: None.
         """
-        # TODO: Implement CodeWriter.write_call
-        pass
+        self._in_function.append(command.arg1)
+        cmd_str = self._templates[command.operation][command.command_type](command.arg2).\
+            format(function_name=self._in_function[-1])
+        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._asm_lines_written += cmd_str.count("\n")
 
     def get_lines_produced(self) -> int:
         """
@@ -155,7 +170,7 @@ class CodeWriter(object):
             'pointer': 3,
             'temp': 5,
             'static': 16,
-            'constant': ''
+            'constant': '',
         }
 
     def _load_base_templates(self) -> dict:
@@ -182,4 +197,14 @@ class CodeWriter(object):
             'eq': {"C_ARITHMETIC": self._asm.EQ},
             'gt': {"C_ARITHMETIC": self._asm.GT},
             'lt': {"C_ARITHMETIC": self._asm.LT},
+
+            #Branching Operations
+            'label': {"C_LABEL": self._asm.LABEL},
+            'goto': {"C_GOTO": self._asm.GOTO},
+            'if-goto': {"C_IF", self._asm.IF},
+            'call': {"C_CALL", self._asm.CALL},
+            'function': {"C_FUNCTION", self._asm.FUNCTION},
+            'return': {"C_RETURN", self._asm.RETURN},
+            'init': {"SYS_INIT", self._asm.INIT}
+            #TODO: goto is in if-goto !!!!!!!
         }
