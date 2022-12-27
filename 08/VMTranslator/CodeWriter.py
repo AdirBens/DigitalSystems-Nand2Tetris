@@ -61,7 +61,7 @@ class CodeWriter(object):
         """
         command = Command("call Sys.init 0")
         cmd_str = self._templates['init']['SYS_INIT']
-        self._output_file.write(self._comment_code_block(cmd_str))
+        self._output_file.write(self._comment_code_block(command, cmd_str))
         self.write_call(command)
         self._asm_lines_written += cmd_str.count("\n")
 
