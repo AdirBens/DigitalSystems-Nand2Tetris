@@ -64,9 +64,9 @@ class VMTranslator(object):
         if stdout:
             print(log_info)
         if header:
-            with open(self.vm_files.replace('.vm', '.asm'), 'r') as f:
+            with open(f'{self._base_name}.asm', 'r') as f:
                 content = f.readlines()
-            with open(self.vm_files.replace('.vm', '.asm'), 'w') as f:
+            with open(f'{self._base_name}.asm', 'w') as f:
                 f.write(log_info.replace("\n", "\n// ") + 2 * "\n")
                 f.writelines(content)
 
