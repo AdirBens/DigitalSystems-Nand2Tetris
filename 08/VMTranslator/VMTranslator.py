@@ -32,7 +32,6 @@ class VMTranslator(object):
             while self.parser.has_more_commands():
                 self.parser.advance()
                 current_command = self.parser.get_current_command()
-                print(current_command.command_type)
                 if current_command.command_type == 'C_ARITHMETIC':
                     self.code_writer.write_arithmetic(current_command)
                 elif current_command.command_type in ['C_PUSH', 'C_POP']:
