@@ -70,7 +70,7 @@ class MachineLanguage(object):
                      '({function_name}_return_address{label_counter})'],
 
             # Function
-            'FUNCTION': ['({function_name}{label_counter})', 'D=0'],
+            'FUNCTION': ['({function_name})', 'D=0'],
 
             # Return
             'RETURN': ['@LCL', 'D=M', '@FRAME', 'A=D',
