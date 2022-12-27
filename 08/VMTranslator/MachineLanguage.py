@@ -65,7 +65,7 @@ class MachineLanguage(object):
                      '@5', 'D=A', '@{num_args}', 'D=A-D', '@SP', 'D=M-D', '@ARG', 'M=D',
                      '@SP', 'D=M', '@LCL', 'M=D',
                      '@{function_name}', 'D;JMP',
-                     '{function_name}_return_address)'],
+                     '({function_name}_return_address)'],
 
             # Function
             'FUNCTION': ['({function_name})', 'D=0'],
