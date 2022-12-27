@@ -14,13 +14,14 @@ class VMTranslator(object):
     def __init__(self, vm_files: str):
         self.vm_files = self._load_program_path(vm_files)
         self.parser = None
-        self.code_writer = None
+        self.code_writer = CodeWriter(vm_files.split('/')[-1].split('.')[0])
 
     def translate(self) -> None:
         """
         Orchestrate Translation VM Commands to HackAssembly process.
         Returns: None.
         """
+        self.code_writer.write_init()
         for vm_file in self.vm_files:
             self._set_file_to_modules(vm_file)
             while self.parser.has_more_commands():
@@ -28,11 +29,21 @@ class VMTranslator(object):
                 current_command = self.parser.get_current_command()
                 if current_command.command_type == 'C_ARITHMETIC':
                     self.code_writer.write_arithmetic(current_command)
-                elif current_command.command_type != 'C_RETURN':
+                elif current_command.command_type in ['C_PUSH', 'C_POP']:
                     self.code_writer.write_push_pop(current_command)
-                else:
-                    continue
-                    #TODO: append branches according to new `writer` methods in CodeWriter
+                elif current_command.command_type == 'C_LABEL':
+                    self.code_writer.write_label(current_command)
+                elif current_command.command_type == 'C_GOTO':
+                    self.code_writer.write_goto(current_command)
+                elif current_command.command_type == 'C_IF':
+                    self.code_writer.write_if(current_command)
+                elif current_command.command_type == 'C_CALL':
+                    self.code_writer.write_call(current_command)
+                elif current_command.command_funtion == 'C_FUNCTION':
+                    self.code_writer.write_function(current_command)
+                elif current_command.command_type == "C_RETURN":
+                    self.code_writer.write_return(current_command)
+            #TODO: append branches according to new `writer` methods in CodeWriter
 
         log_info = self._get_running_info()
         self.parser.close()
@@ -78,13 +89,13 @@ class VMTranslator(object):
                                       f'{indent2} Translation ratio is {produced / parsed}']), f'{sep}{sep}{sep}'])
 
     def _set_file_to_modules(self, vm_file) -> None:
-        if self.code_writer is None and self.parser is None:
+        if self.parser is None:
             self.parser = Parser(vm_file)
-            self.code_writer = CodeWriter(vm_file)
         else:
             self.parser.close()
             self.parser = Parser(vm_file)
             self.code_writer.set_file_name(vm_file)
+
     @staticmethod
     def _load_program_path(program_path: str) -> list:
         if program_path.endswith('.vm'):
