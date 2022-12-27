@@ -16,7 +16,6 @@ class MachineLanguage(object):
         label = "\n".join([])
 
 
-        self._line_seperator()
         self.__dict__.update({
         # Update MachineLanguage Dict with Commands Base Templates
         # ------------------------------------------------------------------------------------------------------------
@@ -83,6 +82,7 @@ class MachineLanguage(object):
                        '@RET', 'A=M', 'D;JMP'
                        ]
         })
+        self._line_seperator()
 
     def _line_seperator(self) -> None:
         """
