@@ -11,7 +11,7 @@ class CodeWriter(object):
         self._asm = MachineLanguage()
         self._templates = self._load_base_templates()
         self._standard_mapping = self.load_std_mapping()
-        self._output_file = open(file_name.replace('.vm', '.asm'), 'w')
+        self._output_file = open(f'{file_name}.asm', 'w')
         self._base_name = path.basename(self._output_file.name)[:-4]
         self._conditions_counter = 1
         self._asm_lines_written = 0
@@ -23,7 +23,7 @@ class CodeWriter(object):
         Args: file_name (str) - the name of the new file
         Returns: None.
         """
-        self._base_name = file_name.split(".")[0]
+        self._base_name = file_name.split('/')[-1].split(".")[0]
 
     def write_arithmetic(self, command: Command) -> None:
         """
@@ -202,7 +202,7 @@ class CodeWriter(object):
             #Branching Operations
             'label': {"C_LABEL": self._asm.LABEL},
             'goto': {"C_GOTO": self._asm.GOTO},
-            'if-goto': {"C_IF", self._asm.IF},
+            'if_goto': {"C_IF", self._asm.IF},
             'call': {"C_CALL", self._asm.CALL},
             'function': {"C_FUNCTION", self._asm.FUNCTION},
             'return': {"C_RETURN", self._asm.RETURN},
