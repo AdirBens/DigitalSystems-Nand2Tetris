@@ -26,7 +26,7 @@ class VMTranslator(object):
         Orchestrate Translation VM Commands to HackAssembly process.
         Returns: None.
         """
-        # self.code_writer.write_init()
+        self.code_writer.write_init()
         for vm_file in self.vm_files:
             self._set_file_to_modules(vm_file)
             while self.parser.has_more_commands():

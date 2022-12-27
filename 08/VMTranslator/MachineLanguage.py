@@ -73,14 +73,14 @@ class MachineLanguage(object):
             'FUNCTION': ['({function_name})', 'D=0'],
 
             # Return
-            'RETURN': ['@LCL', 'D=M', '@FRAME', 'A=D',
-                       '@5', 'D=A', '@FRAME', 'D=A-D', '@RET', 'A=D',
+            'RETURN': ['@LCL', 'D=M', '@FRAME', 'M=D',
+                       '@5', 'D=A', '@FRAME', 'D=M-D', '@RET', 'M=D',
                        pop_d, '@ARG', 'A=D',
                        'D=M+1', '@SP', 'M=D',
-                       '@FRAME', 'DA=A-1', '@THAT', 'M=D',
-                       '@FRAME', 'DA=A-1', '@THIS', 'M=D',
-                       '@FRAME', 'DA=A-1', '@ARG', 'M=D',
-                       '@FRAME', 'DA=A-1', '@LCL', 'M=D',
+                       '@FRAME', 'DA=M-1', '@THAT', 'M=D',
+                       '@FRAME', 'DA=M-1', '@THIS', 'M=D',
+                       '@FRAME', 'DA=M-1', '@ARG', 'M=D',
+                       '@FRAME', 'DA=M-1', '@LCL', 'M=D',
                        '@RET', 'D;JMP'
                        ]
         })
