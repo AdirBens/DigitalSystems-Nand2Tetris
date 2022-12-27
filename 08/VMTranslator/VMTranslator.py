@@ -99,7 +99,6 @@ class VMTranslator(object):
                 vm_files.sort(key=lambda file: -2 if file.endswith('Sys.vm') else 1)
         return vm_files
 def main():
-    # TODO: At VMTranslator.main Add support for directory as input path -> notice the affect on @CodeWriter.set_file_name.
     cli_parser = argparse.ArgumentParser(prog="VMTranslator", description="Translates from jack code to assembly code")
     cli_parser.add_argument('program_path', action='store', required=True,
                             help="path to a .vm file or directory containing .vm files")

@@ -63,9 +63,8 @@ class MachineLanguage(object):
                      '@SP', 'D=M', '@LCL', 'M=D', '{GOTO function}',
                      '({func_name}-return-address)', '{function}', '@SP', 'M=M-1', '{pop_mult}', '@SP', 'M=M+1'],
 
-
             # Function
-            'FUNCTION':['({function_name})', lcl_var * ['D=0', push_d]]
+            'FUNCTION': (lambda arg2: (['({function_name})', arg2 * ['D=0', push_d]]))
 
             # Return
 
