@@ -13,6 +13,8 @@ class MachineLanguage(object):
         bool_labels = "\n".join(['(TRUE{counter})', '@SP', 'A=M', 'M=-1', '@CONTINUE{counter}', 'D;JMP',
                                  '(FALSE{counter})', '@SP', 'A=M', 'M=0', '@CONTINUE{counter}', 'D;JMP',
                                  '(CONTINUE{counter})', '@SP', 'M=M+1'])
+        label = "\n".join([])
+
 
         self.__dict__.update({
         # Update MachineLanguage Dict with Commands Base Templates
@@ -51,13 +53,13 @@ class MachineLanguage(object):
             # Init-Bootstrap
             'INIT': ['@256', 'D=A', '@SP', 'M=D'],
             # Label
-            'LABEL': ['({label})'],
+            'LABEL': ['({label}{label_counter})'],
             # Goto
             'GOTO': ['@{dest}', 'D;JMP'],
             # If-Goto
             'IF': [pop_d, '@{dest}', 'D;JNE'],
             # Call
-            'CALL': ['@{function_name}_return_address', 'D=A', push_d,
+            'CALL': ['@{function_name}_return_address{label_counter}', 'D=A', push_d,
                      '@LCL', 'D=M', push_d,
                      '@ARG', 'D=M', push_d,
                      '@THIS', 'D=M', push_d,
@@ -65,10 +67,10 @@ class MachineLanguage(object):
                      '@5', 'D=A', '@{num_args}', 'D=A-D', '@SP', 'D=M-D', '@ARG', 'M=D',
                      '@SP', 'D=M', '@LCL', 'M=D',
                      '@{function_name}', 'D;JMP',
-                     '({function_name}_return_address)'],
+                     '({function_name}_return_address{label_counter})'],
 
             # Function
-            'FUNCTION': ['({function_name})', 'D=0'],
+            'FUNCTION': ['({function_name}{label_counter})', 'D=0'],
 
             # Return
             'RETURN': ['@LCL', 'D=M', '@FRAME', 'A=D',
