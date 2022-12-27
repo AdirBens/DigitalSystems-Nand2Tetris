@@ -126,11 +126,12 @@ class CodeWriter(object):
             function_name (str) - the name of the function been called
             num_locals (int) - the number of function's local variables
         Returns: None.
+        :param command:
         """
         self._in_function.append(command.arg1)
-        cmd_str = self._templates[command.operation][command.command_type](command.arg2).\
-            format(function_name=self._in_function[-1])
-        self._output_file.write(self._comment_code_block(command, cmd_str))
+        cmd_str = self._templates[command.operation][command.command_type].format(function_name=command.arg1)
+        cmd_str += command.arg2 * (self._asm.PushD + "\n")
+        self._output_file.write(self._comment_code_block(command, cmd_str[:-2]))
         self._asm_lines_written += cmd_str.count("\n")
 
     def get_lines_produced(self) -> int:
