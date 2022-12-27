@@ -1,4 +1,5 @@
 import argparse
+import os
 import time
 from glob import glob
 from CodeWriter import CodeWriter
@@ -11,11 +12,14 @@ class VMTranslator(object):
     The translator creates an output file named fileName.asm, which is stored in the same directory of the input file.
     The name of the input file may contain a file path.
     """
-    def __init__(self, vm_files: str):
-        self.vm_files = self._load_program_path(vm_files)
-        self._base_name = ""
+    def __init__(self, program_path: str):
+        self.vm_files = self._load_program_path(program_path)
+        if os.path.isdir(program_path):
+            self._base_name = f'{program_path}/{program_path.split("/")[-1]}.asm'
+        else:
+            self._base_name = program_path
         self.parser = None
-        self.code_writer = CodeWriter(self._base_name.split('.')[0])
+        self.code_writer = CodeWriter(self._base_name)
 
     def translate(self) -> None:
         """
@@ -64,9 +68,9 @@ class VMTranslator(object):
         if stdout:
             print(log_info)
         if header:
-            with open(f'{self._base_name}.asm', 'r') as f:
+            with open(self._base_name.replace('.vm', '.asm'), 'r') as f:
                 content = f.readlines()
-            with open(f'{self._base_name}.asm', 'w') as f:
+            with open(self._base_name.replace('.vm', '.asm'), 'w') as f:
                 f.write(log_info.replace("\n", "\n// ") + 2 * "\n")
                 f.writelines(content)
 
