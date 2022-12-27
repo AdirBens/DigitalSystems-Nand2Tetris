@@ -138,7 +138,7 @@ class CodeWriter(object):
         cmd_str = self._templates[command.operation][command.command_type].format(function_name=command.arg1,
                                                                                   label_counter=self._label_counter)
         self._label_counter += 1
-        cmd_str += command.arg2 * (self._asm.PushD + "\n")
+        cmd_str += int(command.arg2) * (self._asm.PushD + "\n")
         self._output_file.write(self._comment_code_block(command, cmd_str[:-2]))
         self._asm_lines_written += cmd_str.count("\n")
 
