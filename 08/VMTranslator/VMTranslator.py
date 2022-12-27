@@ -100,7 +100,7 @@ class VMTranslator(object):
         return vm_files
 def main():
     cli_parser = argparse.ArgumentParser(prog="VMTranslator", description="Translates from jack code to assembly code")
-    cli_parser.add_argument('program_path', action='store', required=True,
+    cli_parser.add_argument('program_path', action='store',
                             help="path to a .vm file or directory containing .vm files")
     args = cli_parser.parse_args()
 
