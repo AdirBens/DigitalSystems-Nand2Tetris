@@ -1,7 +1,8 @@
 import argparse
 import os
-import time
 from glob import glob
+import time
+
 from CodeWriter import CodeWriter
 from Parser import Parser
 
@@ -49,7 +50,6 @@ class VMTranslator(object):
                     self.code_writer.write_function(current_command)
                 elif current_command.command_type == "C_RETURN":
                     self.code_writer.write_return(current_command)
-            #TODO: append branches according to new `writer` methods in CodeWriter
 
         log_info = self._get_running_info()
         self.parser.close()

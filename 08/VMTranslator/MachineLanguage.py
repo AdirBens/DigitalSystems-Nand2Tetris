@@ -14,7 +14,6 @@ class MachineLanguage(object):
                                  '(FALSE{counter})', '@SP', 'A=M', 'M=0', '@CONTINUE{counter}', 'D;JMP',
                                  '(CONTINUE{counter})', '@SP', 'M=M+1'])
 
-
         self.__dict__.update({
         # Update MachineLanguage Dict with Commands Base Templates
         # ------------------------------------------------------------------------------------------------------------
