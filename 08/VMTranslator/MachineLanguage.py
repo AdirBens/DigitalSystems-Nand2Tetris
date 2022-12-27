@@ -45,20 +45,28 @@ class MachineLanguage(object):
             'GT': [pop_d, pop_d[:-4], "D=M-D", symbol_false, "D;JLE", symbol_true, "D;JGT", bool_labels],
             'LT': [pop_d, pop_d[:-4], "D=M-D", symbol_false, "D;JGE", symbol_true, "D;JLT", bool_labels],
             'NEG': [pop_d, "M=-M", inc_sp],
-            'NOT': [pop_d, "M=!M", inc_sp]
+            'NOT': [pop_d, "M=!M", inc_sp],
           # Branching # TODO: Add Templates
           # ----------------------------------------------------------------------------------------------------------
             # Init-Bootstrap
 
             # Label
-
+            'LABEL': ['({label})'],
             # Goto
-
+            'GOTO': ['@{label}', 'D;JMP'],
             # If-Goto
-
+            'IFGOTO': [pop_d, '@{label}', 'D;JNE'],
             # Call
+            'CALL': ['@{func_name}-return-address',
+                     'D=A', push_d, '@LCL', 'D=M', push_d, '@ARG', 'D=M', push_d,
+                            '@THIS', 'D=M', push_d,'@THAT', 'D=M', push_d,
+                     '@5', 'D=A', '@{arg_num}', 'D=A-D', '@SP', 'D=M-D', '@ARG', 'M=D',
+                     '@SP', 'D=M', '@LCL', 'M=D', '{GOTO function}',
+                     '({func_name}-return-address)', '{function}', '@SP', 'M=M-1', '{pop_mult}', '@SP', 'M=M+1'],
+
 
             # Function
+            'FUNCTION':['({function_name})', lcl_var * ['D=0', push_d]]
 
             # Return
 
