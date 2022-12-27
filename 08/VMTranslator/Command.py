@@ -24,17 +24,19 @@ class Command(object):
         """
         Returns: (str) command type keyword
         """
-        cmd_type = None
-        for k in self._cmd_types.keys():
-            if k in self._vm_string:
-                cmd_type = k
-        return cmd_type
+        # cmd_type = None
+        # for k in self._cmd_types.keys():
+        #     if k in self._vm_string:
+        #         cmd_type = k
+        # return cmd_type
+        return self._cmd_types[self._vm_string.split()[0]]
 
     def _extract_operation(self) -> str:
         """
         Returns: (str) command operation keyword
         """
-        return "".join([k for k in self._cmd_types.keys() if k in self._vm_string])
+        # return "".join([k for k in self._cmd_types.keys() if k in self._vm_string])
+        return self._vm_string.split()[0]
 
     def _extract_arg1(self) -> str:
         """
