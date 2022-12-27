@@ -1,5 +1,3 @@
-import os.path
-
 from Command import Command
 from MachineLanguage import MachineLanguage
 from os import path
@@ -213,5 +211,4 @@ class CodeWriter(object):
             'function': {"C_FUNCTION": self._asm.FUNCTION},
             'return': {"C_RETURN": self._asm.RETURN},
             'init': {"C_INIT": self._asm.INIT}
-            #TODO: goto is in if-goto !!!!!!!
         }
