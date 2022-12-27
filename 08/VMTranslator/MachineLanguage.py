@@ -49,23 +49,26 @@ class MachineLanguage(object):
           # Branching # TODO: Add Templates
           # ----------------------------------------------------------------------------------------------------------
             # Init-Bootstrap
+            'INIT': ['@256', 'D=A', '@SP', 'M=D'],
             # Label
-            'LABEL': ['({operation})'],
+            'LABEL': ['({label})'],
             # Goto
-            'GOTO': ['@{operation}', 'D;JMP'],
+            'GOTO': ['@{dest}', 'D;JMP'],
             # If-Goto
-            'IF': [pop_d, '@{label}', 'D;JNE'],
+            'IF': [pop_d, '@{dest}', 'D;JNE'],
             # Call
-            'CALL': ['@{arg1}-return-address',
-                     'D=A', push_d, '@LCL', 'D=M', push_d, '@ARG', 'D=M', push_d,
-                     '@THIS', 'D=M', push_d, '@THAT', 'D=M', push_d,
-                     '@5', 'D=A', '@{arg2}', 'D=A-D', '@SP', 'D=M-D', '@ARG', 'M=D',
+            'CALL': ['@{function_name}_return_address', 'D=A', push_d,
+                     '@LCL', 'D=M', push_d,
+                     '@ARG', 'D=M', push_d,
+                     '@THIS', 'D=M', push_d,
+                     '@THAT', 'D=M', push_d,
+                     '@5', 'D=A', '@{num_args}', 'D=A-D', '@SP', 'D=M-D', '@ARG', 'M=D',
                      '@SP', 'D=M', '@LCL', 'M=D',
-                     '@{arg1}', 'D;JMP',
-                     '({arg1}-return-address)'],
+                     '@{function_name}', 'D;JMP',
+                     '{function_name}_return_address)'],
 
             # Function
-            'FUNCTION': (lambda arg2: ['({function_name})', 'D=0', arg2 * push_d + '\n', ]),
+            'FUNCTION': (lambda lcl_var: ['({function_name})', 'D=0', lcl_var * push_d + '\n', ]),
 
             # Return
             'RETURN': ['@LCL', 'D=M', '@FRAME', 'A=D',
