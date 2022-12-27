@@ -26,13 +26,12 @@ class VMTranslator(object):
         Orchestrate Translation VM Commands to HackAssembly process.
         Returns: None.
         """
-        self.code_writer.write_init()
+        # self.code_writer.write_init()
         for vm_file in self.vm_files:
             self._set_file_to_modules(vm_file)
             while self.parser.has_more_commands():
                 self.parser.advance()
                 current_command = self.parser.get_current_command()
-                print(current_command.command_type)
                 if current_command.command_type == 'C_ARITHMETIC':
                     self.code_writer.write_arithmetic(current_command)
                 elif current_command.command_type in ['C_PUSH', 'C_POP']:
