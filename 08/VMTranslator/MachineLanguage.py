@@ -68,7 +68,7 @@ class MachineLanguage(object):
                      '{function_name}_return_address)'],
 
             # Function
-            'FUNCTION': (lambda lcl_var: ['({function_name})', 'D=0', lcl_var * push_d + '\n', ]),
+            'FUNCTION': ['({function_name})', 'D=0'],
 
             # Return
             'RETURN': ['@LCL', 'D=M', '@FRAME', 'A=D',
