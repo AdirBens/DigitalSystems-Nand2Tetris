@@ -157,8 +157,8 @@ class CodeWriter(object):
             codeblock (str) - the asm codeblock produced from the command
         Returns: (str) commented code block
         """
-        return "\n".join(['// For VM Command {}', '//  Produce {} ASM CodeBlock', codeblock]).format(cmd.__str__(),
-                                                                                                     cmd.command_type)
+        return "\n".join(['', '// For VM Command {}', '//  Produce {} ASM CodeBlock', codeblock]).format(cmd.__str__(),
+                                                                                                         cmd.command_type)
 
     @staticmethod
     def load_std_mapping() -> dict:
@@ -204,7 +204,7 @@ class CodeWriter(object):
             #Branching Operations
             'label': {"C_LABEL": self._asm.LABEL},
             'goto': {"C_GOTO": self._asm.GOTO},
-            'if_goto': {"C_IF": self._asm.IF},
+            'if-goto': {"C_IF": self._asm.IF},
             'call': {"C_CALL": self._asm.CALL},
             'function': {"C_FUNCTION": self._asm.FUNCTION},
             'return': {"C_RETURN": self._asm.RETURN},
