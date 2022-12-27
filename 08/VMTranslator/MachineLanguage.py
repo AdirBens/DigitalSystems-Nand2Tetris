@@ -16,6 +16,7 @@ class MachineLanguage(object):
         label = "\n".join([])
 
 
+        self._line_seperator()
         self.__dict__.update({
         # Update MachineLanguage Dict with Commands Base Templates
         # ------------------------------------------------------------------------------------------------------------
@@ -48,17 +49,17 @@ class MachineLanguage(object):
             'LT': [pop_d, pop_d[:-4], "D=M-D", symbol_false, "D;JGE", symbol_true, "D;JLT", bool_labels],
             'NEG': [pop_d, "M=-M", inc_sp],
             'NOT': [pop_d, "M=!M", inc_sp],
-          # Branching # TODO: Add Templates
+          # Branching
           # ----------------------------------------------------------------------------------------------------------
-            # Init-Bootstrap
+            # INIT (BOOTSTRAP)
             'INIT': ['@256', 'D=A', '@SP', 'M=D'],
-            # Label
+            # LABEL
             'LABEL': ['({label})'],
-            # Goto
+            # GOTO
             'GOTO': ['@{dest}', 'D;JMP'],
-            # If-Goto
+            # IF-GOTO
             'IF': [pop_d, '@{dest}', 'D;JNE'],
-            # Call
+            # CALL
             'CALL': ['@{function_name}_return_address{label_counter}', 'D=A', push_d,
                      '@LCL', 'D=M', push_d,
                      '@ARG', 'D=M', push_d,
@@ -68,23 +69,20 @@ class MachineLanguage(object):
                      '@SP', 'D=M', '@LCL', 'M=D',
                      '@{function_name}', 'D;JMP',
                      '({function_name}_return_address{label_counter})'],
-
-            # Function
+            # FUNCTION
             'FUNCTION': ['({function_name})', 'D=0'],
-
-            # Return
+            # RETURN
             'RETURN': ['@LCL', 'D=M', '@FRAME', 'M=D',
-                       '@5', 'D=A', '@FRAME', 'D=M-D', '@RET', 'M=D',
-                       pop_d, '@ARG', 'A=D',
+                       '@5', 'A=D-A', 'D=M', '@FRAME', 'M=D', '@RET', 'M=D',
+                       pop_d, '@ARG', 'A=M', 'M=D',
                        'D=M+1', '@SP', 'M=D',
-                       '@FRAME', 'DA=M-1', '@THAT', 'M=D',
-                       '@FRAME', 'DA=M-1', '@THIS', 'M=D',
-                       '@FRAME', 'DA=M-1', '@ARG', 'M=D',
-                       '@FRAME', 'DA=M-1', '@LCL', 'M=D',
+                       '@FRAME', 'DAM=M-1', 'D=M', '@THAT', 'M=D',
+                       '@FRAME', 'DAM=M-1', 'D=M', '@THIS', 'M=D',
+                       '@FRAME', 'DAM=M-1', 'D=M', '@ARG', 'M=D',
+                       '@FRAME', 'DAM=M-1', 'D=M', '@LCL', 'M=D',
                        '@RET', 'A=M', 'D;JMP'
                        ]
         })
-        self._line_seperator()
 
     def _line_seperator(self) -> None:
         """
