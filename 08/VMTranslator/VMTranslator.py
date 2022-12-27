@@ -15,7 +15,7 @@ class VMTranslator(object):
         self.vm_files = self._load_program_path(vm_files)
         self._base_name = ""
         self.parser = None
-        self.code_writer = CodeWriter(self._base_name)
+        self.code_writer = CodeWriter(self._base_name.split('/')[-1].split('.')[0])
 
     def translate(self) -> None:
         """
@@ -98,7 +98,7 @@ class VMTranslator(object):
             self.code_writer.set_file_name(vm_file)
 
     def _load_program_path(self, program_path: str) -> list:
-        self._base_name = program_path.split('/')[-1].split('.')[0]
+        self._base_name = program_path
         if program_path.endswith('.vm'):
             vm_files = [program_path]
         else:
