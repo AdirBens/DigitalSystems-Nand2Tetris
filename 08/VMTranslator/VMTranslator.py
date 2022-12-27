@@ -81,7 +81,7 @@ class VMTranslator(object):
         produced = self.code_writer.get_lines_produced()
         indent1, indent2, sep = 1 * ' ' + '[+]', 5 * ' ' + '[>]', 24 * '-'
         t = time.ctime()
-        file = self.vm_files.split('/')[-1]
+        file = self._base_name
 
         return "\n".join(['', f'{sep}{t}{sep}', f'VMTranslator - Translation Of {file} to HackAssembly code.',
                           f'{indent1} Translation end successfully.',
