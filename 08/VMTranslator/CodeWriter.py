@@ -139,7 +139,7 @@ class CodeWriter(object):
                                                                                   label_counter=self._label_counter)
         self._label_counter += 1
         cmd_str += int(command.arg2) * (self._asm.PushD + "\n")
-        self._output_file.write(self._comment_code_block(command, cmd_str[:-2]))
+        self._output_file.write(self._comment_code_block(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
 
     def get_lines_produced(self) -> int:
