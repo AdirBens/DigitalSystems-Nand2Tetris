@@ -39,7 +39,7 @@ class VMTranslator(object):
                     self.code_writer.write_if(current_command)
                 elif current_command.command_type == 'C_CALL':
                     self.code_writer.write_call(current_command)
-                elif current_command.command_funtion == 'C_FUNCTION':
+                elif current_command.command_type == 'C_FUNCTION':
                     self.code_writer.write_function(current_command)
                 elif current_command.command_type == "C_RETURN":
                     self.code_writer.write_return(current_command)
