@@ -53,7 +53,7 @@ class MachineLanguage(object):
             # Init-Bootstrap
             'INIT': ['@256', 'D=A', '@SP', 'M=D'],
             # Label
-            'LABEL': ['({label}{label_counter})'],
+            'LABEL': ['({label})'],
             # Goto
             'GOTO': ['@{dest}', 'D;JMP'],
             # If-Goto

@@ -74,9 +74,13 @@ class CodeWriter(object):
         Args: label (str) - string represents the label
         Returns: None.
         """
-        label = "{}${}".format(self._in_function[-1], command.arg1) if len(self._in_function) else command.arg1
-        cmd_str = self._templates[command.operation][command.command_type].format(label=label, label_counter=self._label_counter)
-        self._label_counter += 1
+
+        if len(self._in_function):
+            label = "{}${}".format(self._in_function[-1], command.arg1)
+        else:
+            "{}{}".format(command.arg1, self._label_counter)
+            self._label_counter += 1
+        cmd_str = self._templates[command.operation][command.command_type].format(label=label)
         self._output_file.write(self._comment_code_block(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
 
@@ -86,7 +90,10 @@ class CodeWriter(object):
         Args: label (str) - string represents the label
         Returns: None.
         """
-        cmd_str = self._templates[command.operation][command.command_type].format(dest=command.arg1)
+        
+        label = "{}${}".format(self._in_function[-1], command.arg1) if len(self._in_function) \
+            else "{}{}".format(command.arg1, self._label_counter)
+        cmd_str = self._templates[command.operation][command.command_type].format(dest=label)
         self._output_file.write(self._comment_code_block(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
 
