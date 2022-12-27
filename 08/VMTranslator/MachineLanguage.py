@@ -49,27 +49,35 @@ class MachineLanguage(object):
           # Branching # TODO: Add Templates
           # ----------------------------------------------------------------------------------------------------------
             # Init-Bootstrap
-
             # Label
-            'LABEL': ['({label})'],
+            'LABEL': ['({operation})'],
             # Goto
-            'GOTO': ['@{label}', 'D;JMP'],
+            'GOTO': ['@{operation}', 'D;JMP'],
             # If-Goto
-            'IFGOTO': [pop_d, '@{label}', 'D;JNE'],
+            'IF': [pop_d, '@{label}', 'D;JNE'],
             # Call
-            'CALL': ['@{func_name}-return-address',
+            'CALL': ['@{arg1}-return-address',
                      'D=A', push_d, '@LCL', 'D=M', push_d, '@ARG', 'D=M', push_d,
-                            '@THIS', 'D=M', push_d,'@THAT', 'D=M', push_d,
-                     '@5', 'D=A', '@{arg_num}', 'D=A-D', '@SP', 'D=M-D', '@ARG', 'M=D',
-                     '@SP', 'D=M', '@LCL', 'M=D', '{GOTO function}',
-                     '({func_name}-return-address)', '{function}', '@SP', 'M=M-1', '{pop_mult}', '@SP', 'M=M+1'],
-
+                     '@THIS', 'D=M', push_d, '@THAT', 'D=M', push_d,
+                     '@5', 'D=A', '@{arg2}', 'D=A-D', '@SP', 'D=M-D', '@ARG', 'M=D',
+                     '@SP', 'D=M', '@LCL', 'M=D',
+                     '@{arg1}', 'D;JMP',
+                     '({arg1}-return-address)'],
 
             # Function
-            'FUNCTION':['({function_name})', lcl_var * ['D=0', push_d]]
+            'FUNCTION': (lambda arg2: ['({function_name})', 'D=0', arg2 * push_d + '\n', ]),
 
             # Return
-
+            'RETURN': ['@LCL', 'D=M', '@FRAME', 'A=D',
+                       '@5', 'D=A', '@FRAME', 'D=A-D', '@RET', 'A=D',
+                       pop_d, '@ARG', 'A=D',
+                       'D=M+1', '@SP', 'M=D',
+                       '@FRAME', 'DA=A-1', '@THAT', 'M=D',
+                       '@FRAME', 'DA=A-1', '@THIS', 'M=D',
+                       '@FRAME', 'DA=A-1', '@ARG', 'M=D',
+                       '@FRAME', 'DA=A-1', '@LCL', 'M=D',
+                       '@RET', 'D;JMP'
+                       ]
         })
         self._line_seperator()
 
