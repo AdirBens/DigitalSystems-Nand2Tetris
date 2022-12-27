@@ -115,7 +115,7 @@ class CodeWriter(object):
             num_locals (int) - the number of function's local variables
         Returns: None.
         """
-        # TODO: Implement CodeWriter.write_call
+        # TODO: Implement CodeWriter.write_function
         pass
 
     def get_lines_produced(self) -> int:

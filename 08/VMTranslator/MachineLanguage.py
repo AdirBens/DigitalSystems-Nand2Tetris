@@ -19,7 +19,6 @@ class MachineLanguage(object):
         # ------------------------------------------------------------------------------------------------------------
           # Common Routines
             'PopD': ['@SP', 'AM=M-1', 'D=M'],
-            'PopDTwice': ['@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1'],
             'PushD': ['@SP', 'A=M', 'M=D', '@SP', 'M=M+1'],
             'Inc_SP': ['@SP', 'M=M+1'],
           # StackOperations Templates According MemorySegments
