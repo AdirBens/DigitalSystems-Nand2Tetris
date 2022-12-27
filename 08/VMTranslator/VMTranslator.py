@@ -15,7 +15,7 @@ class VMTranslator(object):
         self.vm_files = self._load_program_path(vm_files)
         self._base_name = ""
         self.parser = None
-        self.code_writer = CodeWriter(self._base_name.split('/')[-1].split('.')[0])
+        self.code_writer = CodeWriter(self._base_name.split('.')[0])
 
     def translate(self) -> None:
         """
@@ -110,6 +110,7 @@ class VMTranslator(object):
             else:
                 vm_files.sort(key=lambda file: -2 if file.endswith('Sys.vm') else 1)
         return vm_files
+
 def main():
     cli_parser = argparse.ArgumentParser(prog="VMTranslator", description="Translates from jack code to assembly code")
     cli_parser.add_argument('program_path', action='store',
