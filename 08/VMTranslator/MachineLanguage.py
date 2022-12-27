@@ -13,7 +13,6 @@ class MachineLanguage(object):
         bool_labels = "\n".join(['(TRUE{counter})', '@SP', 'A=M', 'M=-1', '@CONTINUE{counter}', 'D;JMP',
                                  '(FALSE{counter})', '@SP', 'A=M', 'M=0', '@CONTINUE{counter}', 'D;JMP',
                                  '(CONTINUE{counter})', '@SP', 'M=M+1'])
-        label = "\n".join([])
 
 
         self.__dict__.update({
@@ -27,12 +26,14 @@ class MachineLanguage(object):
           # StackOperations Templates According MemorySegments
           # ----------------------------------------------------------------------------------------------------------
             # C_POP
-            'POP_SEGMENT': ['@{index}', 'D=A', '@{segment}', 'D=D+M', '@R13', 'M=D', pop_d, '@R13', 'A=M', 'M=D'],
+            'POP_SEGMENT': ['@{segment}', 'D=M', '@{index}', 'D=D+A', '@R13', 'M=D', pop_d, '@R13', 'A=M', 'M=D'],
             'POP_STATIC': [pop_d, '@{file}.{index}', 'M=D'],
             'POP_TEMP': ['@{segment}', 'D=A', '@{index}', 'D=D+A', '@R13', 'M=D', pop_d, '@R13', 'A=M', 'M=D'],
-            'POP_POINTER': [pop_d, '@{index}', 'M=D'],
+            # 'POP_POINTER': [pop_d, '@{index}', 'M=D'], <<<<<< ALSO GOOD
+            'POP_POINTER': ['@{index}', 'D=A', '@R13', 'M=D', pop_d, '@R13', 'A=M', 'M=D'],
             # C_PUSH
-            'PUSH_SEGMENT': ['@{index}', 'D=A', '@{segment}', 'A=D+M', 'D=M', push_d],
+            'PUSH_SEGMENT': ['@{segment}', 'D=M', '@{index}', 'D=D+A', 'A=D', 'D=M', push_d],
+
             'PUSH_STATIC': ['@{file}.{index}', 'D=M', push_d],
             'PUSH_TEMP': ['@{index}', 'D=A', '@{segment}', 'A=D+A', 'D=M', push_d],
             'PUSH_POINTER': ['@{index}', 'D=M', push_d],
@@ -79,9 +80,7 @@ class MachineLanguage(object):
                        '@2', 'D=A', '@FRAME', 'D=M-D', 'A=D', 'D=M', '@THIS', 'M=D',
                        '@3', 'D=A', '@FRAME', 'D=M-D', 'A=D', 'D=M', '@ARG', 'M=D',
                        '@4','D=A', '@FRAME', 'D=M-D', 'A=D', 'D=M', '@LCL', 'M=D',
-
                        '@RET', 'A=M', '0;JMP']
-
             })
         self._line_seperator()
 

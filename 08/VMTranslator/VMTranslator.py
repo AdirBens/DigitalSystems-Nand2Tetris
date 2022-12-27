@@ -107,12 +107,8 @@ class VMTranslator(object):
             vm_files = [program_path]
         else:
             vm_files = glob(r'{}/*.vm'.format(program_path))
-            # if not any([file.endswith('Main.vm') for file in vm_files]):
-                # raise FileNotFoundError('[-] VMTranslator: Main.vm is missing.')
-            # elif not any([file.endswith('Sys.vm') for file in vm_files]):
-            #     raise FileNotFoundError('[-] VMTranslator: Sys.vm is missing.')
-            # pass
-            # else:
+            if not any([file.endswith('Sys.vm') for file in vm_files]):
+                raise FileNotFoundError('[-] VMTranslator: Sys.vm is missing.')
             vm_files.sort(key=lambda file: -2 if file.endswith('Sys.vm') else 1)
         return vm_files
 
