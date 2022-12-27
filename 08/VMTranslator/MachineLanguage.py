@@ -19,6 +19,7 @@ class MachineLanguage(object):
         # ------------------------------------------------------------------------------------------------------------
           # Common Routines
             'PopD': ['@SP', 'AM=M-1', 'D=M'],
+            'PopDTwice': ['@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1'],
             'PushD': ['@SP', 'A=M', 'M=D', '@SP', 'M=M+1'],
             'Inc_SP': ['@SP', 'M=M+1'],
           # StackOperations Templates According MemorySegments
@@ -48,26 +49,38 @@ class MachineLanguage(object):
           # Branching # TODO: Add Templates
           # ----------------------------------------------------------------------------------------------------------
             # Init-Bootstrap
-
+            'INIT': ['@256', 'D=A', '@SP', 'M=D'],
             # Label
             'LABEL': ['({label})'],
             # Goto
-            'GOTO': ['@{label}', 'D;JMP'],
+            'GOTO': ['@{dest}', 'D;JMP'],
             # If-Goto
-            'IFGOTO': [pop_d, '@{label}', 'D;JNE'],
+            'IF': [pop_d, '@{dest}', 'D;JNE'],
             # Call
-            'CALL': ['@{func_name}-return-address',
-                     'D=A', push_d, '@LCL', 'D=M', push_d, '@ARG', 'D=M', push_d,
-                            '@THIS', 'D=M', push_d,'@THAT', 'D=M', push_d,
-                     '@5', 'D=A', '@{arg_num}', 'D=A-D', '@SP', 'D=M-D', '@ARG', 'M=D',
-                     '@SP', 'D=M', '@LCL', 'M=D', '{GOTO function}',
-                     '({func_name}-return-address)', '{function}', '@SP', 'M=M-1', '{pop_mult}', '@SP', 'M=M+1'],
+            'CALL': ['@{function_name}_return_address', 'D=A', push_d,
+                     '@LCL', 'D=M', push_d,
+                     '@ARG', 'D=M', push_d,
+                     '@THIS', 'D=M', push_d,
+                     '@THAT', 'D=M', push_d,
+                     '@5', 'D=A', '@{num_args}', 'D=A-D', '@SP', 'D=M-D', '@ARG', 'M=D',
+                     '@SP', 'D=M', '@LCL', 'M=D',
+                     '@{function_name}', 'D;JMP',
+                     '{function_name}_return_address)'],
 
             # Function
-            'FUNCTION': (lambda arg2: (['({function_name})', arg2 * ['D=0', push_d]]))
+            'FUNCTION': (lambda lcl_var: ['({function_name})', 'D=0', lcl_var * push_d + '\n', ]),
 
             # Return
-
+            'RETURN': ['@LCL', 'D=M', '@FRAME', 'A=D',
+                       '@5', 'D=A', '@FRAME', 'D=A-D', '@RET', 'A=D',
+                       pop_d, '@ARG', 'A=D',
+                       'D=M+1', '@SP', 'M=D',
+                       '@FRAME', 'DA=A-1', '@THAT', 'M=D',
+                       '@FRAME', 'DA=A-1', '@THIS', 'M=D',
+                       '@FRAME', 'DA=A-1', '@ARG', 'M=D',
+                       '@FRAME', 'DA=A-1', '@LCL', 'M=D',
+                       '@RET', 'D;JMP'
+                       ]
         })
         self._line_seperator()
 
