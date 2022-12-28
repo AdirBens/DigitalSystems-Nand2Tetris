@@ -1,8 +1,8 @@
 import argparse
 import os
 from glob import glob
-import time
 
+from Logger import Logger
 from CodeWriter import CodeWriter
 from Parser import Parser
 
@@ -14,14 +14,14 @@ class VMTranslator(object):
     The name of the input file may contain a file path.
     """
     def __init__(self, program_path: str):
-        self.vm_files = self._load_program_path(program_path)
         self._as_dir = os.path.isdir(program_path)
-        if self._as_dir:
-            self._base_name = os.path.join(program_path, os.path.basename(program_path)).split('.')[0] + '.asm'
-        else:
-            self._base_name = program_path
+        self._out_file = os.path.join(program_path, os.path.basename(program_path) + '.asm') if self._as_dir \
+            else program_path.replace('.vm', '.asm')
+
+        self.vm_files = self._get_vmfiles(program_path)
+        self.logger = Logger(out_file=self._out_file, prog_path=program_path)
+        self.code_writer = CodeWriter(self._out_file)
         self.parser = None
-        self.code_writer = CodeWriter(self._base_name)
 
     def translate(self) -> None:
         """
@@ -51,48 +51,11 @@ class VMTranslator(object):
                 elif current_command.command_type == "C_RETURN":
                     self.code_writer.write_return(current_command)
 
-        log_info = self._get_running_info()
+        parsed, produced = self.parser.get_lines_parsed(), self.code_writer.get_lines_produced()
         self.parser.close()
         self.code_writer.close()
-        self._log_file(log_info, header=True, stdout=True)
-
-    def _log_file(self, log_info: str, header: bool = False, stdout: bool = True) -> None:
-        """
-        Generate Log form translation session info.
-        Args:
-            log_info (str): translation session info,
-                            includes number of parsed lines, and number of asm code lines produced
-            header (bool): if true append info header to the head of produced .asm file
-            stdout (bool): if true print translation session info to stdout.
-        Returns: None.
-        """
-        if stdout:
-            print(log_info)
-        if header:
-            with open(self._base_name.replace('.vm', '.asm'), 'r') as f:
-                content = f.readlines()
-            with open(self._base_name.replace('.vm', '.asm'), 'w') as f:
-                f.write(log_info.replace("\n", "\n// ") + 2 * "\n")
-                f.writelines(content)
-
-    def _get_running_info(self) -> str:
-        """
-        Collect info about translation session from parser and code writer:
-            - get the number of parsed line by Parser
-            - get the number of asm code lines produced by CodeWriter
-        Returns: running_info (str)
-        """
-        parsed = self.parser.get_lines_parsed()
-        produced = self.code_writer.get_lines_produced()
-        indent1, indent2, sep = 1 * ' ' + '[+]', 5 * ' ' + '[>]', 24 * '-'
-        t = time.ctime()
-        file = self._base_name
-
-        return "\n".join(['', f'{sep}{t}{sep}', f'VMTranslator - Translation Of {file} to HackAssembly code.',
-                          f'{indent1} Translation end successfully.',
-                          f'\n'.join([f'{indent2} {parsed} VM Code lines parsed',
-                                      f'{indent2} {produced} ASM Code lines produced.',
-                                      f'{indent2} Translation ratio is {produced / parsed}']), f'{sep}{sep}{sep}'])
+        self.logger.log_session(vm_parsed=parsed, asm_produced=produced, vm_files=self.vm_files, is_dir=self._as_dir,
+                                header=True, stdout=True)
 
     def _set_file_to_modules(self, vm_file) -> None:
         if self.parser is None:
@@ -102,8 +65,8 @@ class VMTranslator(object):
             self.parser = Parser(vm_file)
             self.code_writer.set_file_name(vm_file)
 
-    def _load_program_path(self, program_path: str) -> list:
-        self._base_name = program_path
+    @staticmethod
+    def _get_vmfiles(program_path: str) -> list:
         if program_path.endswith('.vm'):
             vm_files = [program_path]
         else:
@@ -113,6 +76,7 @@ class VMTranslator(object):
             vm_files.sort(key=lambda file: -2 if file.endswith('Sys.vm') else 1)
         return vm_files
 
+
 def main():
     cli_parser = argparse.ArgumentParser(prog="VMTranslator", description="Translates from jack code to assembly code")
     cli_parser.add_argument('program_path', action='store',
@@ -121,6 +85,7 @@ def main():
 
     vm_translator = VMTranslator(args.program_path)
     vm_translator.translate()
+
 
 if __name__ == "__main__":
     main()

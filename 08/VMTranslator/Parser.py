@@ -45,9 +45,7 @@ class Parser(object):
         """
         Returns: the number of VM code lines Parsed by Parser
         """
-        if self._commands_parsed == 0:
-            return 1
-        return self._commands_parsed
+        return self._commands_parsed if self._commands_parsed else 1
 
     def close(self) -> None:
         """

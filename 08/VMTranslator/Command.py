@@ -4,6 +4,7 @@ class Command(object):
     The Command object is taking care of extracting command's components from VMCommand string,
     and provide convenient and safe access to command's components.
     """
+
     def __init__(self, command: str):
         self._vm_string = command
         self._cmd_types = self._load_types()
@@ -15,22 +16,16 @@ class Command(object):
     def __str__(self):
         return self._vm_string
 
-    def __repr__(self):
-        return 'Command {}: operation={}({}) arg1={} arg2={}'.format(self._vm_string, self._operation,
-                                                                     self._command_type,
-                                                                     self._arg1, self._arg2)
-
     def _extract_type(self) -> str:
         """
         Returns: (str) command type keyword
         """
-        return self._cmd_types[self._vm_string.split()[0]]
+        return self._cmd_types.get(self._vm_string.split()[0], '')
 
     def _extract_operation(self) -> str:
         """
         Returns: (str) command operation keyword
         """
-        # return "".join([k for k in self._cmd_types.keys() if k in self._vm_string])
         return self._vm_string.split()[0]
 
     def _extract_arg1(self) -> str:
@@ -57,6 +52,7 @@ class Command(object):
                 arg2 = 'THAT' if int(arg2) else 'THIS'
         return arg2
 
+    # Getters as Properties:
     @property
     def command_type(self) -> str:
         return self._command_type

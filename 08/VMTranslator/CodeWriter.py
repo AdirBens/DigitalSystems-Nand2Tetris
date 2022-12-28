@@ -1,7 +1,8 @@
-from os import path
+import os.path
 
 from Command import Command
 from MachineLanguage import MachineLanguage
+from Logger import Logger as log
 
 
 class CodeWriter(object):
@@ -12,12 +13,13 @@ class CodeWriter(object):
         self._asm = MachineLanguage()
         self._templates = self._load_base_templates()
         self._standard_mapping = self.load_std_mapping()
-        self._output_file = open(file_name.replace('.vm', '.asm'), 'w')
-        self._base_name = path.basename(self._output_file.name)[:-4]
+        self._output_file = open(file_name, 'w')
+        self._base_name = os.path.basename(file_name).split('.')[0]
+
         self._conditions_counter = 1
-        self._label_counter=1
-        self._asm_lines_written = 0
+        self._label_counter = 1
         self._curr_function = ""
+        self._asm_lines_written = 0
 
     def set_file_name(self, file_name: str) -> None:
         """
@@ -36,7 +38,7 @@ class CodeWriter(object):
         """
         cmd_str = self._templates[command.arg1][command.command_type].format(counter=self._conditions_counter)
         self._conditions_counter += 1
-        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._output_file.write(log.comment_codeblock(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
 
     def write_push_pop(self, command: Command) -> None:
@@ -52,7 +54,7 @@ class CodeWriter(object):
             segment=self._standard_mapping[command.arg1],
             index=str(command.arg2),
             file=self._base_name)
-        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._output_file.write(log.comment_codeblock(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
 
     def write_init(self) -> None:
@@ -63,7 +65,7 @@ class CodeWriter(object):
         """
         command = Command("init")
         cmd_str = self._templates['init']['C_INIT']
-        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._output_file.write(log.comment_codeblock(command, cmd_str))
         self.write_call(Command("call Sys.init 0"))
         self._asm_lines_written += cmd_str.count("\n")
 
@@ -74,9 +76,9 @@ class CodeWriter(object):
         Returns: None.
         """
         label = "{}${}".format(self._curr_function, command.arg1) if len(self._curr_function) \
-                                                                  else "{}".format(command.arg1)
+            else "{}".format(command.arg1)
         cmd_str = self._templates[command.operation][command.command_type].format(label=label)
-        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._output_file.write(log.comment_codeblock(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
 
     def write_goto(self, command: Command) -> None:
@@ -86,9 +88,9 @@ class CodeWriter(object):
         Returns: None.
         """
         label = "{}${}".format(self._curr_function, command.arg1) if len(self._curr_function) \
-                                                                  else "{}".format(command.arg1)
+            else "{}".format(command.arg1)
         cmd_str = self._templates[command.operation][command.command_type].format(dest=label)
-        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._output_file.write(log.comment_codeblock(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
 
     def write_if(self, command: Command) -> None:
@@ -109,7 +111,7 @@ class CodeWriter(object):
                                                                                   num_args=command.arg2,
                                                                                   label_counter=self._label_counter)
         self._label_counter += 1
-        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._output_file.write(log.comment_codeblock(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
 
     def write_return(self, command: Command) -> None:
@@ -119,7 +121,7 @@ class CodeWriter(object):
         Returns: None.
         """
         cmd_str = self._templates[command.operation][command.command_type]
-        self._output_file.write(self._comment_code_block(command, cmd_str))
+        self._output_file.write(log.comment_codeblock(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
 
     def write_function(self, command: Command) -> None:
@@ -128,11 +130,10 @@ class CodeWriter(object):
         Args: command (Command): command object
         Returns: None.
         """
-
         self._curr_function = command.arg1
         cmd_str = self._templates[command.operation][command.command_type].format(function_name=command.arg1)
-        cmd_str += int(command.arg2) * (self._asm.PushD + "\n")
-        self._output_file.write(self._comment_code_block(command, cmd_str))
+        cmd_str += int(command.arg2) * (self._asm.PushZero + "\n")
+        self._output_file.write(log.comment_codeblock(command, cmd_str))
         self._asm_lines_written += cmd_str.count("\n")
 
     def get_lines_produced(self) -> int:
@@ -146,18 +147,6 @@ class CodeWriter(object):
         Close output file stream
         """
         self._output_file.close()
-
-    @staticmethod
-    def _comment_code_block(cmd: Command, codeblock: str) -> str:
-        """
-        Append Comment on produces asm code block
-        Args:
-            cmd (Command) - the command object which asm code produced from
-            codeblock (str) - the asm codeblock produced from the command
-        Returns: (str) commented code block
-        """
-        return "\n".join(['', '// For VM Command {}', '//  Produce {} ASM CodeBlock',
-                          codeblock]).format(cmd.__str__(), cmd.command_type)
 
     @staticmethod
     def load_std_mapping() -> dict:
@@ -199,7 +188,7 @@ class CodeWriter(object):
             'eq': {"C_ARITHMETIC": self._asm.EQ},
             'gt': {"C_ARITHMETIC": self._asm.GT},
             'lt': {"C_ARITHMETIC": self._asm.LT},
-            #Branching Operations
+            # Branching Operations
             'label': {"C_LABEL": self._asm.LABEL},
             'goto': {"C_GOTO": self._asm.GOTO},
             'if-goto': {"C_IF": self._asm.IF},
