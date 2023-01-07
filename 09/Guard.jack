@@ -1,0 +1,87 @@
+
+/**
+* Guard Rules: 
+* (1) Guard can move in the 4 diagonals 
+* (2) In case Guard hits wall it randomly7 changes direction until next wall is met
+* (3) If guard has less than 16 pixels to move in every direction it is eliminated
+* (4) If all guards are eliminated - WIN!
+* (5) If guard hits Player - GAME OVER! 
+*/
+class Guard {
+    field int SCREEN_BASE_ADDRESS;
+    field int x, y;
+
+    constructor Guard new(int inX, int inY) {
+        let SCREEN_BASE_ADDRESS = 16384;
+        let x = inX;
+        let y = inY;
+        do draw(x, y);
+        return this;
+    }
+
+
+    method void draw(int x, int y) {
+        var int location;
+        var int memAddress;
+
+        let location = Math.multiply(y, 32) + Math.divide(x + 1, 16);
+        let memAddress = SCREEN_BASE_ADDRESS + location;
+        do Memory.poke(memAddress+0, 960);
+        do Memory.poke(memAddress+32, 1632);
+        do Memory.poke(memAddress+64, 3120);
+        do Memory.poke(memAddress+96, 6744);
+        do Memory.poke(memAddress+128, 12876);
+        do Memory.poke(memAddress+160, 24582);
+        do Memory.poke(memAddress+192, -16381);
+        do Memory.poke(memAddress+224, -385);
+        do Memory.poke(memAddress+256, 2016);
+        do Memory.poke(memAddress+288, 4080);
+        do Memory.poke(memAddress+320, 32766);
+        do Memory.poke(memAddress+352, 4080);
+        do Memory.poke(memAddress+384, 7800);
+        do Memory.poke(memAddress+416, 13260);
+        do Memory.poke(memAddress+448, 24966);
+        do Memory.poke(memAddress+480, 0);
+        return;
+    }
+
+    method void erase(int x, int y) {
+        var int location;
+        var int memAddress;
+
+        let location = Math.multiply(y, 32) + Math.divide(x + 1, 16);
+        let memAddress = SCREEN_BASE_ADDRESS + location;
+        do Memory.poke(memAddress+0, 0);
+        do Memory.poke(memAddress+32, 0);
+        do Memory.poke(memAddress+64, 0);
+        do Memory.poke(memAddress+96, 0);
+        do Memory.poke(memAddress+128, 0);
+        do Memory.poke(memAddress+160, 0);
+        do Memory.poke(memAddress+192, 0);
+        do Memory.poke(memAddress+224, 0);
+        do Memory.poke(memAddress+256, 0);
+        do Memory.poke(memAddress+288, 0);
+        do Memory.poke(memAddress+320, 0);
+        do Memory.poke(memAddress+352, 0);
+        do Memory.poke(memAddress+384, 0);
+        do Memory.poke(memAddress+416, 0);
+        do Memory.poke(memAddress+448, 0);
+        do Memory.poke(memAddress+480, 0);
+        return;
+    }
+    method void randDirection(){
+        
+    }
+    
+    method void randDirection(){
+
+    }
+
+    method void dispose(){
+        do Memory.deAlloc(this);
+        return;
+    }
+
+
+
+}

@@ -1,0 +1,131 @@
+
+class Player {
+    static int SCREEN_BASE_ADDRESS;
+    field int x, y;     // screen location of the Player's top-left corner
+    field int steps;    // Should be divisor of 16 !!!
+
+    constructor Player new() {
+        let SCREEN_BASE_ADDRESS = 16384;
+        let steps = 4;
+        let x = 248;
+        let y = 239;
+
+        do draw(x, y);
+        return this;
+    }
+
+    method void draw(int x, int y) {
+        var int location;
+        var int memAddress;
+
+        let location = Math.multiply(y, 32) + Math.divide(x + 1, 16);
+        let memAddress = SCREEN_BASE_ADDRESS + location;
+
+        do Memory.poke(memAddress+0, 4080);
+        do Memory.poke(memAddress+32, 4104);
+        do Memory.poke(memAddress+64, 10212);
+        do Memory.poke(memAddress+96, 22554);
+        do Memory.poke(memAddress+128, -25639);
+        do Memory.poke(memAddress+160, -23515);
+        do Memory.poke(memAddress+192, -21931);
+        do Memory.poke(memAddress+224, -22123);
+        do Memory.poke(memAddress+256, -22123);
+        do Memory.poke(memAddress+288, -21931);
+        do Memory.poke(memAddress+320, -23515);
+        do Memory.poke(memAddress+352, -25639);
+        do Memory.poke(memAddress+384, 22554);
+        do Memory.poke(memAddress+416, 10212);
+        do Memory.poke(memAddress+448, 4104);
+        do Memory.poke(memAddress+480, 4080);
+        return;
+    }
+
+    method void erase(int x, int y) {
+        var int location;
+        var int memAddress;
+
+        let location = Math.multiply(y, 32) + Math.divide(x + 1, 16);
+        let memAddress = SCREEN_BASE_ADDRESS + location;
+
+        do Memory.poke(memAddress+0, -1);
+        do Memory.poke(memAddress+32, -1);
+        do Memory.poke(memAddress+64, -1);
+        do Memory.poke(memAddress+96, -1);
+        do Memory.poke(memAddress+128, -1);
+        do Memory.poke(memAddress+160, -1);
+        do Memory.poke(memAddress+192, -1);
+        do Memory.poke(memAddress+224, -1);
+        do Memory.poke(memAddress+256, -1);
+        do Memory.poke(memAddress+288, -1);
+        do Memory.poke(memAddress+320, -1);
+        do Memory.poke(memAddress+352, -1);
+        do Memory.poke(memAddress+384, -1);
+        do Memory.poke(memAddress+416, -1);
+        do Memory.poke(memAddress+448, -1);
+        do Memory.poke(memAddress+480, -1);
+        return;
+    }
+
+    /** Moves the square up by 2 pixels. */
+    method void moveUp() {
+        if (y > 1){
+            do erase(x, y);
+            do Screen.setColor(true);
+            let y = y - steps;
+            do draw(x, y);
+        } 
+        return;
+    }
+
+    /** Moves the square up by 2 pixels. */
+    method void moveDown() {
+        if ((y + 16) < 255) {
+            do erase(x, y);
+            do Screen.setColor(true);
+            let y = y + steps;
+            do draw(x, y);
+        }
+        return;
+    }
+
+
+    /** Moves the square up by 2 pixels. */
+    method void moveLeft() {
+        if (x > 1) {
+            do erase(x, y);
+            do Screen.setColor(true);
+            let x = x - steps;
+            do draw(x, y);
+        }
+        return;
+    }
+
+    /** Moves the square up by 2 pixels. */
+    method void moveRight() {
+        if ((x + 16) < 511) {
+            do erase(x, y);
+            do Screen.setColor(true);
+            let x = x + steps;
+            do draw(x, y);
+        }
+        return;
+    }
+
+    // method boolean hitWall(int nx, int ny) {
+    //     var int location;
+    //     var int memAddress;
+
+    //     let location = Math.multiply(y, 32) + Math.divide(x + 1, 16);
+    //     let memAddress = SCREEN_BASE_ADDRESS + location;
+
+    //     do Memory.poke(memAddress+0, -1);
+    //     do Memory.poke(memAddress+32, -1);
+    //     return;
+    // }
+
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

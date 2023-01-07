@@ -1,0 +1,40 @@
+
+class Game {
+    field Board board;
+    field PlayerGame playerGame;
+    field Guard guard1;
+    field Guard guard2;
+
+    constructor Game new() {
+        var int difficulty;
+        let difficulty = startup();
+
+        let board = Board.new();
+        let playerGame = PlayerGame.new();
+        let guard1 = Guard.new(50, 50);
+        let guard2 = Guard.new(75, 75);
+        return this;
+    }
+
+    method int startup() {
+        var int difficulty;
+        // get from user input ....
+
+        // return difficulty;
+        return 1;
+    }
+
+    method void run() {
+        do playerGame.readInput();
+        return;
+    }
+
+
+    method void dispose() {
+        do playerGame.dispose();
+        do guard1.dispose();
+        do guard2.dispose();
+        do board.dispose();
+        return;
+    }
+}

@@ -1,0 +1,26 @@
+class Board {
+
+    field int borderSize;
+
+    constructor Board new() {
+        let borderSize = 15;
+        // TODO: remove kaki field 
+        do drawBorders();
+        return this;
+    }
+
+    method void drawBorders() { // TODO: Implements relative border size according to parameters
+        do Screen.setColor(true);
+        do Screen.drawRectangle(0, 0, 511, 15);      // Header
+        do Screen.drawRectangle(0, 239, 511, 255);   // Footer
+        do Screen.drawRectangle(0, 15, 15, 239);   // Left
+        do Screen.drawRectangle(495, 15, 511, 239);   // Right
+        return;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+     }
+  
+}
