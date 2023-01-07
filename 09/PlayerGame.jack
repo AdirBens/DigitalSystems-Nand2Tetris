@@ -2,6 +2,7 @@
 class PlayerGame {
     field int direction; // 0=none, 1=up, 2=down, 3=left, 4=right
     field Player player;
+    field int difficulty;
 
     constructor PlayerGame new(){    
         let direction = 0;
@@ -15,34 +16,31 @@ class PlayerGame {
         if (direction = 3) { do player.moveLeft(); }
         if (direction = 4) { do player.moveRight(); }
         
-        do Sys.wait(12); // delays the next movement;
+        do Sys.wait(20); // delays the next movement;
         return;
     }
 
     method void readInput () {
         var char key;
         var boolean exit;
-        let exit = false;
 
-        while (~exit) {
-            // waits for a key to be pressed
-            while (key = 0){
-                let key = Keyboard.keyPressed();
-                do movePlayer();
-            }
-            
-            // set direction
-            if (key = 81)  { let exit = true; }     // q key
-            if (key = 131) { let direction = 1; }   // up arrow
-            if (key = 133) { let direction = 2; }   // down arrow
-            if (key = 130) { let direction = 3; }   // left arrow
-            if (key = 132) { let direction = 4; }   // right arrow
+        // waits for a key to be pressed
+        if (key = 0){
+            let key = Keyboard.keyPressed();
+            do movePlayer();
+        }
+        
+        // set direction
+        // if (key = 81)  { let exit = true; }     // q key
+        if (key = 131) { let direction = 1; }   // up arrow
+        if (key = 133) { let direction = 2; }   // down arrow
+        if (key = 130) { let direction = 3; }   // left arrow
+        if (key = 132) { let direction = 4; }   // right arrow
 
-            // waits for the key to be released
-            while (~(key = 0)) {
-                let key = Keyboard.keyPressed();
-                do movePlayer();
-            }
+        // waits for the key to be released
+        if (~(key = 0)) {
+            let key = Keyboard.keyPressed();
+            do movePlayer();
         }
         return;
     }
