@@ -13,9 +13,7 @@ class Main {
             do game.run();
             do game.dispose();
             let restart = Game.restart();
-
         }
-        do game.dispose();
         return;
     }
 }

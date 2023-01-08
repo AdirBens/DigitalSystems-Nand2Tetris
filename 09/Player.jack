@@ -7,7 +7,7 @@ class Player {
     constructor Player new() {
         let SCREEN_BASE_ADDRESS = 16384;
         let steps = 16;
-        let x = 248;
+        let x = 240;
         let y = 240;
 
         do draw(x, y);

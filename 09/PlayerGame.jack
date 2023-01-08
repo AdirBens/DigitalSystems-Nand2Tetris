@@ -10,7 +10,7 @@ class PlayerGame {
         let direction = 0;
         let player = Player.new();
         let exit = false;
-        let speed = 15;
+        let speed = 1;
         return this;
     }
 

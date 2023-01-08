@@ -19,7 +19,7 @@ class Guard {
     constructor Guard new(int inX, int inY, int inDirection) {
         let SCREEN_BASE_ADDRESS = 16384;
         let steps = 16;
-        let speed = 20;
+        let speed = 10;
         let x = inX;
         let y = inY;
         let direction = inDirection;

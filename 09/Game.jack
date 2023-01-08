@@ -8,7 +8,8 @@ class Game {
     constructor Game new() {
         var int difficulty; // difficulty is defined from 1-3 
         do Screen.clearScreen();
-        let difficulty = startup();
+        do openScreen();
+        let difficulty = chooseDifficulty();
 
         let board = Board.new();
         let playerGame = PlayerGame.new();
@@ -17,49 +18,93 @@ class Game {
         return this;
     }
 
-    method int startup() {
-        var int difficulty;
-        // get from user input ....
-
-        // return difficulty;
-        return 1;
+    method int chooseDifficulty() {
+        var char key;
+        while (true) {
+            let key = Keyboard.keyPressed();
+            if (key = 49) { return 1;} // if R is pressed -> RESTART
+            if (key = 50) { return 2;}// if Q is pressed -> QUIT
+            if (key = 51) { return 3;}// if Q is pressed -> QUIT
+        }
+        return 0;
     }
 
+
     method void run() {
-        // var Game newGame;
         while (~playerGame.getExit()){
             do playerGame.runPlayer();
+            if(gameOver()){
+                do Sys.wait(1000);
+                do messageGameOver();
+                return;
+            }
             do guard1.move();
+            if(gameOver()){
+                do Sys.wait(1000);
+                do messageGameOver();
+                return;
+            }
             do guard2.move();
             if(win()) {
-                do Sys.wait(100);
+                do Sys.wait(1000);
                 do messageWin();
-                do Game.restart();
+                return;
             }
             if(gameOver()){
-                do Sys.wait(100);
+                do Sys.wait(1000);
                 do messageGameOver();
-                do Game.restart();
+                return;
             }
             }
         return;
     }
 
-
     method boolean win() {
         var boolean win;
         let win = guard1.canNotMove() & guard2.canNotMove();
-        do dispose();
         return win;
     }
 
 
     method boolean gameOver() {
         var boolean loose;
-        let loose = (((playerGame.getX() = guard1.getX()) & (playerGame.getY()= guard1.getY())) | ((playerGame.getX() = guard2.getX()) & (playerGame.getY() = guard2.getY())));
-        do dispose();
+        let loose = (((playerGame.getX() = guard1.getX()) & (playerGame.getY()= guard1.getY())) 
+                    | ((playerGame.getX() = guard2.getX()) & (playerGame.getY() = guard2.getY())));
         return loose;
     }
+
+        /** 
+        * Opening screen for the player to choose game difficulty.
+        * Once the player hits difficulty (1-3) the game automatically starts.
+        */
+        method void openScreen() {
+            var String message;
+            do Screen.clearScreen();
+            let message = String.new(60);
+
+            do Output.moveCursor(5, 28);
+            let message = "Welcome!";
+            do Output.printString(message);
+            
+            do Output.moveCursor(8, 7);
+            let message = "You are about to play the best game in the world";
+            do Output.printString(message);
+            
+            do Output.moveCursor(11, 2);
+            let message = "Choose difficulty between 1 - 3 using the keyboard numbers";
+            do Output.printString(message);
+            
+            do Output.moveCursor(13, 16);
+            let message = "After choosing game will start";
+            do Output.printString(message);
+            
+            do Output.moveCursor(17, 27);
+            let message = "Good Luck!";
+            do Output.printString(message);
+            
+            do message.dispose();
+            return;
+        }
 
 
     /** If the player won (i.e. Guards do not have where to go to), the game is ended.
@@ -119,7 +164,7 @@ class Game {
         var char key;
         while (true) {
             let key = Keyboard.keyPressed();
-            if (key = 120) { return true;} // if R is pressed -> RESTART
+            if (key = 82) { return true;} // if R is pressed -> RESTART
             if (key = 81) { return false;}// if Q is pressed -> QUIT
         }
         return true;
