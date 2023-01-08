@@ -1,7 +1,9 @@
+ /**
+* Airxonix game
+* Main method runs the game and restarts upon player request. 
+*/
+
 class Main {
-    /**
-    Airxonix
-    */
 
     function void main() {
         var Game game;

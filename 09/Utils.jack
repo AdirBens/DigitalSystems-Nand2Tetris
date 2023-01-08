@@ -2,7 +2,7 @@
 class Utils {
 
     /**
-    * 
+    * Function to build the array used to hold all Guard objects
     */
     function Array buildGuardsArray(int guardsNumber, int speed){
         var Random random;
@@ -20,9 +20,9 @@ class Utils {
 
         while (i < guardsNumber) {
             // get randomly the i'th Guard's starting position (x, y) and direction
-            let x = 16 + (16 * random.randRange(10));         // 16 <= x coordinate <= 224
+            let x = 16 + (16 * random.randRange(29));         // 16 <= x coordinate <= 224
             do random.addCallTime(1);
-            let y = 32 + (16 * random.randRange(10));         // 32 <= y coordinate <= 464
+            let y = 32 + (16 * random.randRange(14));         // 32 <= y coordinate <= 464
             do random.addCallTime(0);
             let direction = 1 + random.randRange(3);          // 1=up/right, 2=up/left, 3=down/right, 4=down/left 
             do random.addCallTime(0);
@@ -35,7 +35,7 @@ class Utils {
     }
 
     /**
-    * 
+    * Dispose all Guards
     */
     function void disposeGuardsArray(Array array, int numGuard) {
         var int i;

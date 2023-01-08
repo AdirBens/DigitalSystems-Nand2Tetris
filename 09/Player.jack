@@ -1,4 +1,11 @@
 
+/**
+* Player Rules: 
+* (1) Player is a 16*16 pixel figure
+* (2) Player can move in 4 directions - up, down, left right.
+* (3) Player moves using the keyboard arrow keys.
+*/
+
 class Player {
     static int SCREEN_BASE_ADDRESS;
     field int x, y;     // screen location of the Player's top-left corner

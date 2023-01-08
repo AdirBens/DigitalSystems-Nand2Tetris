@@ -1,6 +1,9 @@
 
 /**
-* 
+* Game Rules: 
+* (1) If all guards are eliminated - WIN!
+* (2) If guard hits Player - GAME OVER! 
+* (3) Player chooses difficulty at the start of every game.
 */
 class Game {
     field Board board;
@@ -10,7 +13,7 @@ class Game {
     field int gameSpeed;
 
     /**
-    *
+    * Creates new Game
     */
     constructor Game new() {
         var int difficulty;
@@ -23,7 +26,7 @@ class Game {
     }
 
     /**
-    *
+    * Disposes Game
     */
     method void dispose() {
         do board.dispose();
@@ -36,7 +39,7 @@ class Game {
 
 
     /**
-    * Wlecome the user and sets Game's Difficulty to the desire one.
+    * Welcomes the user and sets Game's Difficulty to the desired one.
     */
     method int getDifficulty() {
         var char key;
@@ -83,7 +86,7 @@ class Game {
 
 
     /**
-    * Start The Game Session
+    * Starts the Game session
     * 
     */
     method void start() {
@@ -136,7 +139,7 @@ class Game {
 
 
     /**
-    *
+    * Checks if user hits R -> Restart the Game
     */
     function boolean isRestart() {
         var char key;

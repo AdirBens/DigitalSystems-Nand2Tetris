@@ -1,4 +1,9 @@
 
+/**
+* PlayerGame controls the players movement throughout the game
+* Every movement is a 16 pixel jump on the screen leaving a trail behind
+*/
+
 class PlayerGame {
     field int direction; // 0=none, 1=up, 2=down, 3=left, 4=right
     field Player player;
@@ -14,6 +19,9 @@ class PlayerGame {
         return this;
     }
 
+    /**
+    * Moves the player one step according to the direction field
+    */
     method void movePlayer() {
         if (direction = 1) { do player.moveUp(); }
         if (direction = 2) { do player.moveDown(); }
@@ -24,6 +32,9 @@ class PlayerGame {
         return;
     }
 
+   /**
+    * Determines what the players next move is according using the keyPressed
+    */
     method void runPlayer () {
         var char key;
 
@@ -53,7 +64,6 @@ class PlayerGame {
         return;
     }
 
-    // checks if the player hit a guard
     method int getX(){
         return player.getX();
     }

@@ -1,8 +1,8 @@
 
 /**
 * Guard Rules: 
-* (1) Guard can move in the 4 diagonals 
-* (2) In case Guard hits wall it randomly7 changes direction until next wall is met
+* (1) Guard can move in the 4 diagonals and only move on white areas (where the player hasent been)
+* (2) In case Guard hits wall it randomly changes direction until next wall is met
 * (3) If guard has less than 16 pixels to move in every direction it is eliminated
 * (4) If all guards are eliminated - WIN!
 * (5) If guard hits Player - GAME OVER! 
@@ -24,7 +24,6 @@ class Guard {
         let y = inY;
         let direction = inDirection;
         do draw();
-        // do moveUpRight();       // why? Doesnt we get the inDirection?
         do move();
         return this;
     }
@@ -90,6 +89,7 @@ class Guard {
         if (direction = 4) { do moveDownLeft(); }
         return;
     }
+
 
     method boolean canNotMove() {
         var boolean canNotMove;
