@@ -6,11 +6,11 @@ class PlayerGame {
     field boolean exit;
 
 
-    constructor PlayerGame new(){    
+    constructor PlayerGame new(int sSpeed){    
         let direction = 0;
         let player = Player.new();
         let exit = false;
-        let speed = 1;
+        let speed = sSpeed;
         return this;
     }
 

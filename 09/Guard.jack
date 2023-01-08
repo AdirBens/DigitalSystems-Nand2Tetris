@@ -16,15 +16,16 @@ class Guard {
     field int direction; // 1=up/right, 2=up/left, 3=down/right, 4=down/left
     field int lastDirection;
 
-    constructor Guard new(int inX, int inY, int inDirection) {
+    constructor Guard new(int inX, int inY, int inDirection, int sSpeed) {
         let SCREEN_BASE_ADDRESS = 16384;
         let steps = 16;
-        let speed = 10;
+        let speed = sSpeed;
         let x = inX;
         let y = inY;
         let direction = inDirection;
         do draw();
-        do moveUpRight();
+        // do moveUpRight();       // why? Doesnt we get the inDirection?
+        do move();
         return this;
     }
 
@@ -113,7 +114,7 @@ class Guard {
         }
         let direction = 3;
         return;
-        }
+    }
 
 
     /** Moves the guard up/left by step size. */
@@ -236,6 +237,5 @@ class Guard {
         do Memory.deAlloc(this);
         return;
     }
-
 
 }

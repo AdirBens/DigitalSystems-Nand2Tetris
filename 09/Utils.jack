@@ -1,0 +1,55 @@
+
+class Utils {
+
+    /**
+    * 
+    */
+    function Array buildGuardsArray(int guardsNumber, int speed){
+        var Random random;
+        var Array array;
+        
+        var int i;
+        var int x, y;
+        var int direction;
+        
+        let array = Array.new(guardsNumber);
+        let i = 0;
+        
+        
+        let random = Random.new(0);
+
+        while (i < guardsNumber) {
+            // get randomly the i'th Guard's starting position (x, y) and direction
+            let x = 16 + (16 * random.randRange(10));         // 16 <= x coordinate <= 224
+            do random.addCallTime(1);
+            let y = 32 + (16 * random.randRange(10));         // 32 <= y coordinate <= 464
+            do random.addCallTime(0);
+            let direction = 1 + random.randRange(3);          // 1=up/right, 2=up/left, 3=down/right, 4=down/left 
+            do random.addCallTime(0);
+            let array[i] = Guard.new(x, y, direction, speed);
+            let i = i + 1;
+        }
+
+        do Memory.deAlloc(random);
+        return array;
+    }
+
+    /**
+    * 
+    */
+    function void disposeGuardsArray(Array array, int numGuard) {
+        var int i;
+        var Guard currentGuard;
+
+        let i = 0;
+
+        while (i < numGuard){
+            let currentGuard = array[i];
+            do currentGuard.dispose();
+
+            let i = i + 1;
+        }
+        do Memory.deAlloc(array);
+        return;
+    }
+}

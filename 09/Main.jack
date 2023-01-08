@@ -8,11 +8,12 @@ class Main {
         var boolean restart;
         
         let restart = true;
+
         while (restart){
             let game = Game.new();
-            do game.run();
+            do game.start();
             do game.dispose();
-            let restart = Game.restart();
+            let restart = Game.isRestart();
         }
         return;
     }

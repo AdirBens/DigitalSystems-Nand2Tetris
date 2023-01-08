@@ -1,0 +1,107 @@
+
+
+class Messages {   
+    /** 
+    * Opening screen for the player to choose game difficulty.
+    * Once the player hits difficulty (1-3) the game automatically starts.
+    */
+    function void Welcome() {
+        var String message;
+        do Screen.clearScreen();
+        let message = String.new(60);
+
+        do Output.moveCursor(5, 28);
+        let message = "Welcome!";
+        do Output.printString(message);
+        
+        do Output.moveCursor(8, 7);
+        let message = "You are about to play the best game in the world";
+        do Output.printString(message);
+        
+        do Output.moveCursor(11, 2);
+        let message = "Choose difficulty between 1 - 3 using the keyboard numbers";
+        do Output.printString(message);
+        
+        do Output.moveCursor(13, 16);
+        let message = "After choosing game will start";
+        do Output.printString(message);
+        
+        do Output.moveCursor(17, 27);
+        let message = "Good Luck!";
+        do Output.printString(message);
+        
+        do message.dispose();
+        return;
+    }
+
+
+    /** 
+    * If the player won (i.e. Guards do not have where to go to), the game is ended.
+    * Prints an informative message, disposes the game's objects, and disposes the game. 
+    */
+    function void WinGame() {
+        var String message;
+        do Screen.clearScreen();
+        let message = String.new(45);
+        
+        do Output.moveCursor(5, 12);
+        let message = "Congratulations! You have won the game.";
+        do Output.printString(message);
+        
+        do Output.moveCursor(7, 18);
+        let message = "This game is a real fun, isn't  it?!";
+        do Output.printString(message);
+        
+        do Output.moveCursor(11, 21);
+        let message = "Come back soon!  : )";
+        do Output.printString(message);
+        
+        do Output.moveCursor(15, 17);
+        let message = "Press R to start a new game.";
+        do Output.printString(message);
+        
+        do Output.moveCursor(17, 23);
+        let message = "Press Q to quit.";
+        do Output.printString(message);
+        
+        do message.dispose();
+        return;
+    }
+
+    /** 
+    * If the player lost (i.e. Guards caught player), the game is over.
+    * Prints an informative message, disposes the game's objects, and disposes the game. 
+    */
+    function void GameOver() {
+        var String message;
+        do Screen.clearScreen();
+        let message = String.new(40);
+
+        do Output.moveCursor(5, 26);
+        let message = "Game Over!";
+        do Output.printString(message);
+
+        do Output.moveCursor(7, 21);
+        let message = "You were pretty good.";
+        do Output.printString(message);
+
+        do Output.moveCursor(9, 14);
+        let message = "Next time you will do even better.";
+        do Output.printString(message);
+
+        do Output.moveCursor(11, 21);
+        let message = "Come back soon!  : )";
+        do Output.printString(message);
+
+        do Output.moveCursor(15, 17);
+        let message = "Press R to start a new game.";
+        do Output.printString(message);
+
+        do Output.moveCursor(17, 23);
+        let message = "Press Q to quit.";
+        do Output.printString(message);
+        
+        do message.dispose();
+        return;
+    }
+}
