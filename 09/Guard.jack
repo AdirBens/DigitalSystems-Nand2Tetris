@@ -7,6 +7,7 @@
 * (4) If all guards are eliminated - WIN!
 * (5) If guard hits Player - GAME OVER! 
 */
+
 class Guard {
     static int SCREEN_BASE_ADDRESS;
     field int x, y;
@@ -87,6 +88,12 @@ class Guard {
         if (direction = 3) { do moveDownRight(); }
         if (direction = 4) { do moveDownLeft(); }
         return;
+    }
+
+    method boolean canNotMove() {
+        var boolean canNotMove;
+        let canNotMove = (~canMoveDownLeft()) & (~canMoveDownRight()) & (~canMoveUpLeft()) & (~canMoveUpRight());
+        return canNotMove;
     }
 
     /** Moves the guard up/right by step size. */
@@ -207,11 +214,6 @@ class Guard {
         return Guard.notBlocked(x - 16 , y + 16);
     }
 
-
-
-
-
-
     // Checks if there is a block at given location
     function boolean notBlocked(int nx, int ny) {
         var int memAddress;
@@ -222,6 +224,14 @@ class Guard {
         return true;
     }
 
+    method int getX(){
+        return x;
+    }
+
+    method int getY(){
+        return y;
+    } 
+    
     method void dispose(){
         do Memory.deAlloc(this);
         return;

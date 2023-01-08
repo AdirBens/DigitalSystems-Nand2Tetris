@@ -5,10 +5,17 @@ class Main {
 
     function void main() {
         var Game game;
-        let game = Game.new();
+        var boolean restart;
         
-        do game.run();
-        // do game.dispose();
+        let restart = true;
+        while (restart){
+            let game = Game.new();
+            do game.run();
+            do game.dispose();
+            let restart = Game.restart();
+
+        }
+        do game.dispose();
         return;
     }
 }

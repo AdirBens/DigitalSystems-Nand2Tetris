@@ -6,7 +6,8 @@ class Game {
     field Guard guard2;
 
     constructor Game new() {
-        var int difficulty; // difficulty is defined from 1-3
+        var int difficulty; // difficulty is defined from 1-3 
+        do Screen.clearScreen();
         let difficulty = startup();
 
         let board = Board.new();
@@ -25,15 +26,104 @@ class Game {
     }
 
     method void run() {
-        while (true){
-            do playerGame.readInput();
+        // var Game newGame;
+        while (~playerGame.getExit()){
+            do playerGame.runPlayer();
             do guard1.move();
             do guard2.move();
-        }
-
+            if(win()) {
+                do Sys.wait(100);
+                do messageWin();
+                do Game.restart();
+            }
+            if(gameOver()){
+                do Sys.wait(100);
+                do messageGameOver();
+                do Game.restart();
+            }
+            }
         return;
     }
 
+
+    method boolean win() {
+        var boolean win;
+        let win = guard1.canNotMove() & guard2.canNotMove();
+        do dispose();
+        return win;
+    }
+
+
+    method boolean gameOver() {
+        var boolean loose;
+        let loose = (((playerGame.getX() = guard1.getX()) & (playerGame.getY()= guard1.getY())) | ((playerGame.getX() = guard2.getX()) & (playerGame.getY() = guard2.getY())));
+        do dispose();
+        return loose;
+    }
+
+
+    /** If the player won (i.e. Guards do not have where to go to), the game is ended.
+        Prints an informative message, disposes the game's objects, and disposes the game. */
+        method void messageWin() {
+            var String message;
+            do Screen.clearScreen();
+            let message = String.new(45);
+            do Output.moveCursor(5, 12);
+            let message = "Congratulations! You have won the game.";
+            do Output.printString(message);
+            do Output.moveCursor(7, 18);
+            let message = "This game is a real fun, isn't  it?!";
+            do Output.printString(message);
+            do Output.moveCursor(11, 21);
+            let message = "Come back soon!  : )";
+            do Output.printString(message);
+            do Output.moveCursor(15, 17);
+            let message = "Press R to start a new game.";
+            do Output.printString(message);
+            do Output.moveCursor(17, 23);
+            let message = "Press Q to quit.";
+            do Output.printString(message);
+            do message.dispose();
+            return;
+        }
+    
+        /** If the player lost (i.e. Guards caught player), the game is over.
+            Prints an informative message, disposes the game's objects, and disposes the game. */
+        method void messageGameOver() {
+            var String message;
+            do Screen.clearScreen();
+            let message = String.new(40);
+            do Output.moveCursor(5, 26);
+            let message = "Game Over!";
+            do Output.printString(message);
+            do Output.moveCursor(7, 21);
+            let message = "You were pretty good.";
+            do Output.printString(message);
+            do Output.moveCursor(9, 14);
+            let message = "Next time you will do even better.";
+            do Output.printString(message);
+            do Output.moveCursor(11, 21);
+            let message = "Come back soon!  : )";
+            do Output.printString(message);
+            do Output.moveCursor(15, 17);
+            let message = "Press R to start a new game.";
+            do Output.printString(message);
+            do Output.moveCursor(17, 23);
+            let message = "Press Q to quit.";
+            do Output.printString(message);
+            do message.dispose();
+            return;
+        }
+
+    function boolean restart() {
+        var char key;
+        while (true) {
+            let key = Keyboard.keyPressed();
+            if (key = 120) { return true;} // if R is pressed -> RESTART
+            if (key = 81) { return false;}// if Q is pressed -> QUIT
+        }
+        return true;
+    }
 
     method void dispose() {
         do playerGame.dispose();
