@@ -1,6 +1,11 @@
+/** 
+* Class for generating random integers
+*/
+
 class Random {
     field int seed; //random seed
     field int calledTime;
+
 
     constructor Random new(int seedIn) {
 
@@ -11,8 +16,11 @@ class Random {
         return this;
     }
 
+    /** 
+    * return a random number in the range 0..32767 
+    */
+
     method int rand() {
-        /** return a random number in the range 0..32767 */
 
         let seed = seed + 20251;
 
@@ -23,8 +31,11 @@ class Random {
         return seed;
     }
 
+    /** 
+    * return a random number in the range 0..range 
+    */
+
     method int randRange(int range) {
-        /** return a random number in the range 0..range */
         var int mask;
         var int ret;
 
@@ -45,7 +56,9 @@ class Random {
         return ret;
     }
 
-    //get new shift number according to called times
+    /** 
+    * get new shift number according to called times
+    */
     method int getShift() {
         var int temp;
 
@@ -61,17 +74,21 @@ class Random {
         return temp;
     }
 
-    //dispose the Oject
+
+    method void addCallTime(int times){
+        let calledTime = calledTime + times;
+        return;
+
+    }
+
+    /** 
+    * dispose object
+    */
     method void dispose(){
         do Memory.deAlloc(this);
         return;
     }
 
-    method void addCallTime(int times){
 
-        let calledTime = calledTime + times;
-        return;
-
-    }
 
 }
