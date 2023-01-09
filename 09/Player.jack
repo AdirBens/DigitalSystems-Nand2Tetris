@@ -1,0 +1,133 @@
+
+/**
+* Player Rules: 
+* (1) Player is a 16*16 pixel figure
+* (2) Player can move in 4 directions - up, down, left right.
+* (3) Player moves using the keyboard arrow keys.
+*/
+
+class Player {
+    static int SCREEN_BASE_ADDRESS;
+    field int x, y;     // screen location of the Player's top-left corner
+    field int steps;    // Should be divisor of 16 !!!
+
+    constructor Player new() {
+        let SCREEN_BASE_ADDRESS = 16384;
+        let steps = 16;
+        let x = 240;
+        let y = 240;
+
+        do draw(x, y);
+        return this;
+    }
+
+    method void draw(int x, int y) {
+        var int location;
+        var int memAddress;
+
+        let location = Math.multiply(y, 32) + Math.divide(x + 1, 16);
+        let memAddress = SCREEN_BASE_ADDRESS + location;
+
+        do Memory.poke(memAddress+0, -1);
+        do Memory.poke(memAddress+32, -1);
+        do Memory.poke(memAddress+64, -26599);
+        do Memory.poke(memAddress+96, -19507);
+        do Memory.poke(memAddress+128, -6169);
+        do Memory.poke(memAddress+160, -13261);
+        do Memory.poke(memAddress+192, -10213);
+        do Memory.poke(memAddress+224, -9829);
+        do Memory.poke(memAddress+256, -9829);
+        do Memory.poke(memAddress+288, -10213);
+        do Memory.poke(memAddress+320, -13261);
+        do Memory.poke(memAddress+352, -6169);
+        do Memory.poke(memAddress+384, -19507);
+        do Memory.poke(memAddress+416, -26599);
+        do Memory.poke(memAddress+448, -1);
+        do Memory.poke(memAddress+480, -1);
+        return;
+    }
+
+    method void erase(int x, int y) {
+        var int location;
+        var int memAddress;
+
+        let location = Math.multiply(y, 32) + Math.divide(x + 1, 16);
+        let memAddress = SCREEN_BASE_ADDRESS + location;
+
+        do Memory.poke(memAddress+0, -1);
+        do Memory.poke(memAddress+32, -1);
+        do Memory.poke(memAddress+64, -1);
+        do Memory.poke(memAddress+96, -1);
+        do Memory.poke(memAddress+128, -1);
+        do Memory.poke(memAddress+160, -1);
+        do Memory.poke(memAddress+192, -1);
+        do Memory.poke(memAddress+224, -1);
+        do Memory.poke(memAddress+256, -1);
+        do Memory.poke(memAddress+288, -1);
+        do Memory.poke(memAddress+320, -1);
+        do Memory.poke(memAddress+352, -1);
+        do Memory.poke(memAddress+384, -1);
+        do Memory.poke(memAddress+416, -1);
+        do Memory.poke(memAddress+448, -1);
+        do Memory.poke(memAddress+480, -1);
+        return;
+    }
+
+    /** Moves the Player up by 2 pixels. */
+    method void moveUp() {
+        if (y > 1){
+            do erase(x, y);
+            do Screen.setColor(true);
+            let y = y - steps;
+            do draw(x, y);
+        } 
+        return;
+    }
+
+    /** Moves the Player down by 2 pixels. */
+    method void moveDown() {
+        if ((y + 16) < 255) {
+            do erase(x, y);
+            do Screen.setColor(true);
+            let y = y + steps;
+            do draw(x, y);
+        }
+        return;
+    }
+
+
+    /** Moves the Player left by 2 pixels. */
+    method void moveLeft() {
+        if (x > 1) {
+            do erase(x, y);
+            do Screen.setColor(true);
+            let x = x - steps;
+            do draw(x, y);
+        }
+        return;
+    }
+
+    /** Moves the Player right by 2 pixels. */
+    method void moveRight() {
+        if ((x + 16) < 511) {
+            do erase(x, y);
+            do Screen.setColor(true);
+            let x = x + steps;
+            do draw(x, y);
+        }
+        return;
+    }
+
+    method int getX(){
+        return x;
+    }
+
+    method int getY(){
+        return y;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

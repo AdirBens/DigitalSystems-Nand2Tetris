@@ -1,0 +1,84 @@
+
+/**
+* PlayerGame controls the players movement throughout the game
+* Every movement is a 16 pixel jump on the screen leaving a trail behind
+*/
+
+class PlayerGame {
+    field int direction; // 0=none, 1=up, 2=down, 3=left, 4=right
+    field Player player;
+    field int speed;
+    field boolean exit;
+
+
+    constructor PlayerGame new(int sSpeed){    
+        let direction = 0;
+        let player = Player.new();
+        let exit = false;
+        let speed = sSpeed;
+        return this;
+    }
+
+    /**
+    * Moves the player one step according to the direction field
+    */
+    method void movePlayer() {
+        if (direction = 1) { do player.moveUp(); }
+        if (direction = 2) { do player.moveDown(); }
+        if (direction = 3) { do player.moveLeft(); }
+        if (direction = 4) { do player.moveRight(); }
+        
+        do Sys.wait(speed); // delays the next movement;
+        return;
+    }
+
+   /**
+    * Determines what the players next move is according using the keyPressed
+    */
+    method void runPlayer () {
+        var char key;
+
+        // waits for a key to be pressed
+        if (key = 0){
+            let key = Keyboard.keyPressed();
+            do movePlayer();
+        }
+        
+        // check if user wants to exit game
+        if (key = 81) {
+            let exit = true;
+            return; 
+        }
+        
+        // set direction
+        if (key = 131) { let direction = 1; }   // up arrow
+        if (key = 133) { let direction = 2; }   // down arrow
+        if (key = 130) { let direction = 3; }   // left arrow
+        if (key = 132) { let direction = 4; }   // right arrow
+
+        // waits for the key to be released
+        if (~(key = 0)) {
+            let key = Keyboard.keyPressed();
+            do movePlayer();
+        }
+        return;
+    }
+
+    method int getX(){
+        return player.getX();
+    }
+
+    method int getY(){
+        return player.getY();
+    }
+
+    method boolean getExit() {
+        return exit;
+    }
+
+    method void dispose() {
+        do player.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+}

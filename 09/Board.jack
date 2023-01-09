@@ -1,0 +1,31 @@
+ /**
+* Board is initialized to 16 pixel boarders surrounding the screen.
+*/
+
+class Board {
+
+    field int borderSize;
+
+    constructor Board new() {
+        let borderSize = 15;
+        // TODO: remove kaki field 
+        do drawBorders();
+        return this;
+    }
+
+    method void drawBorders() { 
+        do Screen.clearScreen();
+        do Screen.setColor(true);
+        do Screen.drawRectangle(0, 0, 511, 15);      // Header
+        do Screen.drawRectangle(0, 240, 511, 255);   // Footer
+        do Screen.drawRectangle(0, 15, 15, 239);   // Left
+        do Screen.drawRectangle(496, 15, 511, 240);   // Right
+        return;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+     }
+  
+}

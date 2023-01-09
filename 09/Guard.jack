@@ -1,0 +1,241 @@
+
+/**
+* Guard Rules: 
+* (1) Guard can move in the 4 diagonals and only move on white areas (where the player hasent been)
+* (2) In case Guard hits wall it randomly changes direction until next wall is met
+* (3) If guard has less than 16 pixels to move in every direction it is eliminated
+* (4) If all guards are eliminated - WIN!
+* (5) If guard hits Player - GAME OVER! 
+*/
+
+class Guard {
+    static int SCREEN_BASE_ADDRESS;
+    field int x, y;
+    field int steps;
+    field int speed;
+    field int direction; // 1=up/right, 2=up/left, 3=down/right, 4=down/left
+    field int lastDirection;
+
+    constructor Guard new(int inX, int inY, int inDirection, int sSpeed) {
+        let SCREEN_BASE_ADDRESS = 16384;
+        let steps = 16;
+        let speed = sSpeed;
+        let x = inX;
+        let y = inY;
+        let direction = inDirection;
+        do draw();
+        do move();
+        return this;
+    }
+
+
+    method void draw() {
+        var int location;
+        var int memAddress;
+
+        let location = Math.multiply(y, 32) + Math.divide(x, 16);
+        let memAddress = SCREEN_BASE_ADDRESS + location;
+
+        do Memory.poke(memAddress+0, 960);
+        do Memory.poke(memAddress+32, 1632);
+        do Memory.poke(memAddress+64, 3120);
+        do Memory.poke(memAddress+96, 6744);
+        do Memory.poke(memAddress+128, 12876);
+        do Memory.poke(memAddress+160, 24582);
+        do Memory.poke(memAddress+192, -16381);
+        do Memory.poke(memAddress+224, -385);
+        do Memory.poke(memAddress+256, 2016);
+        do Memory.poke(memAddress+288, 4080);
+        do Memory.poke(memAddress+320, 32766);
+        do Memory.poke(memAddress+352, 4080);
+        do Memory.poke(memAddress+384, 7800);
+        do Memory.poke(memAddress+416, 13260);
+        do Memory.poke(memAddress+448, 24966);
+        do Memory.poke(memAddress+480, 0);
+        return;
+    }
+
+    method void erase() {
+        var int location;
+        var int memAddress;
+
+        let location = Math.multiply(y, 32) + Math.divide(x, 16);
+        let memAddress = SCREEN_BASE_ADDRESS + location;
+        do Memory.poke(memAddress+0, 0);
+        do Memory.poke(memAddress+32, 0);
+        do Memory.poke(memAddress+64, 0);
+        do Memory.poke(memAddress+96, 0);
+        do Memory.poke(memAddress+128, 0);
+        do Memory.poke(memAddress+160, 0);
+        do Memory.poke(memAddress+192, 0);
+        do Memory.poke(memAddress+224, 0);
+        do Memory.poke(memAddress+256, 0);
+        do Memory.poke(memAddress+288, 0);
+        do Memory.poke(memAddress+320, 0);
+        do Memory.poke(memAddress+352, 0);
+        do Memory.poke(memAddress+384, 0);
+        do Memory.poke(memAddress+416, 0);
+        do Memory.poke(memAddress+448, 0);
+        do Memory.poke(memAddress+480, 0);
+        return;
+    }
+
+
+    /** Moves the guard according to last call */
+    method void move() {
+        if (direction = 1) { do moveUpRight(); }
+        if (direction = 2) { do moveUpLeft(); }
+        if (direction = 3) { do moveDownRight(); }
+        if (direction = 4) { do moveDownLeft(); }
+        return;
+    }
+
+
+    method boolean canNotMove() {
+        var boolean canNotMove;
+        let canNotMove = (~canMoveDownLeft()) & (~canMoveDownRight()) & (~canMoveUpLeft()) & (~canMoveUpRight());
+        return canNotMove;
+    }
+
+    /** Moves the guard up/right by step size. */
+    method void moveUpRight() {
+        if (canMoveUpRight()){
+            do erase();
+            do Screen.setColor(true);
+            let y = y - steps;
+            let x = x + steps;
+            do draw();
+            do Sys.wait(speed);
+            return;
+        }
+        if (canMoveUp()) {
+            let direction = 2;
+            return;
+        }
+        let direction = 3;
+        return;
+    }
+
+
+    /** Moves the guard up/left by step size. */
+    method void moveUpLeft() {
+        if (canMoveUpLeft()){
+            do erase();
+            do Screen.setColor(true);
+            let y = y - steps;
+            let x = x - steps;
+            do draw();
+            do Sys.wait(speed);
+            return;
+        }
+        if (canMoveUp()){
+            let direction = 1;
+            return;
+        }                
+        let direction = 4;
+        return;
+    }
+
+
+    /** Moves the guard down/right by step size. */
+    method void moveDownRight() {
+        if (canMoveDownRight()){
+            do erase();
+            do Screen.setColor(true);
+            let y = y + steps;
+            let x = x + steps;
+            do draw();
+            do Sys.wait(speed);
+            return;
+        }
+        if (canMoveDown()) {
+            let direction = 4;
+            return;
+        }
+        let direction = 1;
+        return;
+    }
+
+
+    /** Moves the guard down/left by step size. */
+    method void moveDownLeft() {
+        if (canMoveDownLeft()){
+                do erase();
+                do Screen.setColor(true);
+                let y = y + steps;
+                let x = x - steps;
+                do draw();
+                do Sys.wait(speed);
+                return;
+        }
+        if (canMoveDown()){
+                let direction = 3;
+                return;
+        }
+        let direction = 2;
+        return;
+    }
+
+    // Checks if guard can move up
+    method boolean canMoveUp() {
+        return Guard.notBlocked(x , y - 16);
+    }
+
+    // Checks if guard can move down
+    method boolean canMoveDown() {
+        return Guard.notBlocked(x , y + 16);
+    }
+
+    // Checks if guard can move left
+    method boolean canMoveLeft() {
+        return Guard.notBlocked(x - 16 , y);
+    }
+
+    // Checks if guard can move right
+    method boolean canMoveRight() {
+        return Guard.notBlocked(x + 16 , y);
+    }
+
+    // Checks if guard can move up/right (1)
+    method boolean canMoveUpRight() {
+        return Guard.notBlocked(x + 16 , y - 16);
+    }
+
+    // Checks if guard can move up/left (2)
+    method boolean canMoveUpLeft() {
+        return Guard.notBlocked(x - 16 , y - 16);
+    }
+    // Checks if guard can move down/right (3)
+    method boolean canMoveDownRight() {
+        return Guard.notBlocked(x + 16 , y + 16);
+    }
+
+    // Checks if guard can move down/left (4)
+    method boolean canMoveDownLeft() {
+        return Guard.notBlocked(x - 16 , y + 16);
+    }
+
+    // Checks if there is a block at given location
+    function boolean notBlocked(int nx, int ny) {
+        var int memAddress;
+        let memAddress = SCREEN_BASE_ADDRESS + (32 * ny) + Math.divide(nx, 16);
+         if (Memory.peek(memAddress) = -1) {
+            return false;
+        }
+        return true;
+    }
+
+    method int getX(){
+        return x;
+    }
+
+    method int getY(){
+        return y;
+    } 
+    
+    method void dispose(){
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}

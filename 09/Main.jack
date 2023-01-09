@@ -1,0 +1,22 @@
+ /**
+* Airxonix game
+* Main method runs the game and restarts upon player request. 
+*/
+
+class Main {
+
+    function void main() {
+        var Game game;
+        var boolean restart;
+        
+        let restart = true;
+
+        while (restart){
+            let game = Game.new();
+            do game.start();
+            do game.dispose();
+            let restart = Game.isRestart();
+        }
+        return;
+    }
+}
