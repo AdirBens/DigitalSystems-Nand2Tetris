@@ -1,6 +1,7 @@
 import argparse
 import pathlib
-import error
+
+from error import InvalidInputFileError
 from CompilationEngine import CompilationEngine
 from JackTokenizer import JackTokenizer
 
@@ -11,9 +12,6 @@ class JackAnalyzer(object):
     """
     INPUT_FILES = None
     OUTPUT_FILE = None
-
-    TOKENIZER = None
-    ENGINE = None
 
     def __init__(self, input_path: str):
         self._set_io_files(input_path)
@@ -44,15 +42,14 @@ class JackAnalyzer(object):
             self.INPUT_FILES = list(path.glob("*.jack"))
             self.OUTPUT_FILE = path.joinpath(f"{path.absolute().parts[-1]}.xml")
         else:
-            raise error.InvalidInputFileError("The given path is not a single .jack file "
-                                              "nor directory contains one or more .jack file")
+            raise InvalidInputFileError("The given path is not a single .jack file "
+                                        "nor directory contains one or more .jack file")
 
 
 def main():
     cli_parser = argparse.ArgumentParser(prog="JackAnalyzer",
                                          description="SyntaxAnalyzer - As Jack Compilation First Stage")
-    cli_parser.add_argument('program_path', action='store',
-                            help="path to a .vm file or directory containing .vm files")
+    cli_parser.add_argument('program_path', action='store', help="path to .jack file or directory contains .jack files")
     args = cli_parser.parse_args()
 
     analyzer = JackAnalyzer(args.program_path)

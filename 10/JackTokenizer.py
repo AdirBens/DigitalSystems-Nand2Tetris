@@ -7,27 +7,34 @@ class JackTokenizer(object):
     as specified by the Jack grammar.
     """
 
-    INPUT_FILE = None
-
     def __init__(self):
         """
         Opens the input file/stream and gets ready to tokenize it.
         Args:
         """
-        pass
+        self.INPUT_FILE = None
+        self.CURRENT_TOKEN = None
 
-    def set_input_file(self, input_file: pathlib.Path) -> None:
+    def set_input_file(self, input_path: pathlib.Path) -> None:
         """
-        Sets JackTokenizer's input_file to given file
+        Open input file and Sets it as JackTokenizer's input_file
         Args:
-            input_file (pathlib.Path) -
+            input_path (pathlib.Path) -
         Returns: None
         """
-        self.INPUT_FILE = input_file
+        self.INPUT_FILE = open(input_path, 'r')
 
     def has_more_tokens(self) -> bool:
         """
         Returns: true if there are more commands in the input, else false.
+        """
+        pass
+
+    def advance(self) -> None:
+        """
+        Gets the next token from the input and makes it the current token.
+        This method should only be called if @has_more_tokens() is true.
+        Returns: None
         """
         pass
 
@@ -66,7 +73,13 @@ class JackTokenizer(object):
     def string_val(self) -> str:
         """
         Returns: (str) The string value of the current token, without the double quotes.
-        Should be called only when tokenType() is STRING_CONST.
+                       Should be called only when tokenType() is STRING_CONST.
         """
         pass
-    
+
+    def close(self) -> None:
+        """
+        Closes The Input File
+        Returns: None
+        """
+        self.INPUT_FILE.close()
