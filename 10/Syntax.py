@@ -7,8 +7,6 @@ class Syntax(object):
     """
     # TODO: take a look of CPython Tokenizer https://github.com/python/cpython/blob/v3.7.4/Lib/tokenize.py
 
-    # KEYWORDS = ["class", "constructor", "function", "method", "field", "static", "var", "int", "char",
-    #             "boolean", "void", "true", "false", "null", "this", "let", "do", "if", "else", "return", "while"]
     TERMINALS = {
         'keyword': re.compile("class|constructor|function|method|field|static|var"
                               "|int|char|boolean|void|true|false|null|"

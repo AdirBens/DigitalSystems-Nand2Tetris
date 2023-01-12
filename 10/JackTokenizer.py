@@ -57,7 +57,6 @@ class JackTokenizer(object):
         terminal = None
         if token := Syntax.TERMINALS.get("inline_comment").match(buffer):
             terminal = "inlineComment"
-            pass
 
         elif token := Syntax.TERMINALS.get("symbol").match(buffer):
             terminal = "symbol"
