@@ -6,17 +6,13 @@ class Syntax(object):
 
     """
     # TODO: take a look of CPython Tokenizer https://github.com/python/cpython/blob/v3.7.4/Lib/tokenize.py
-    # TERMINALS = {
-    #     # 'keyword': re.compile("(class)\\W|(constructor)\\W|(function)\\W|(method)\\W|"
-    #     #                       "(field)\\W|(static)\\W|(var)\\W|(int)\\W|(char)\\W|"
-    #     #                       "(boolean)\\W|(void)\\W|(true)\\W|(false)\\W|(null)\\W|"
-    #     #                       "(this)\\W|(let)\\W|(do)\\W|(if)\\W|(else)\\W|\\W*(return)\\W|(while)\\W"),
-    #
-    #
 
+    # KEYWORDS = ["class", "constructor", "function", "method", "field", "static", "var", "int", "char",
+    #             "boolean", "void", "true", "false", "null", "this", "let", "do", "if", "else", "return", "while"]
     TERMINALS = {
-        'keyword': re.compile("([class|constructor|function|method|field|static|var|int|char|boolean|void|true|false|null|"
-                              "this|let|do|if|else|return|while])[{|}|[(]|[)]|\\[|\\]|[|]|[.]|,|[;]|\\+|-|\\*|/|&|\\||<|>|=|~| | \\t]?"),
+        'keyword': re.compile("class|constructor|function|method|field|static|var"
+                              "|int|char|boolean|void|true|false|null|"
+                              "this|let|do|if|else|return|while(?=\\W)"),
 
         'symbol': re.compile("{|}|[(]|[)]|\\[|\\]|[|]|[.]|,|[;]|\\+|-|\\*|/|&|\\||<|>|=|~"),
 

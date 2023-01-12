@@ -46,45 +46,55 @@ class JackTokenizer(object):
         This method should only be called if @has_more_tokens() is true.
         Returns: None
         """
-        if self.has_more_tokens():
-            self.set_cursor_to_code()
-            cursor = self._file_iterator.tell()
-            buffer = self._file_iterator.readline()
-            with_whites = len(buffer)
-            buffer = buffer.lstrip()
-            whites = with_whites - len(buffer)
+        self.set_cursor_to_code()
+        cursor = self._file_iterator.tell()
+        buffer = self._file_iterator.readline()
+        with_whites = len(buffer)
+        buffer = buffer.lstrip()
+        whites = with_whites - len(buffer)
 
-            token = None
-            terminal = None
-            if token := Syntax.TERMINALS.get("inline_comment").match(buffer):
-                terminal = "inlineComment"
-                pass
+        token = None
+        terminal = None
+        if token := Syntax.TERMINALS.get("inline_comment").match(buffer):
+            terminal = "inlineComment"
+            pass
 
-            elif token := Syntax.TERMINALS.get("symbol").match(buffer):
-                terminal = "symbol"
-                token = token.group(0)
+        elif token := Syntax.TERMINALS.get("symbol").match(buffer):
+            terminal = "symbol"
+            token = token.group(0)
+            if token == '<':
+                token = '&lt;'
+                whites -= 2
+            if token == '>':
+                token = '&gt'
+                whites -= 2
 
-            elif token := Syntax.TERMINALS.get("keyword").match(buffer):
-                terminal = "keyword"
-                token = token.group(1)
+        elif token := Syntax.TERMINALS.get("keyword").match(buffer):
+            terminal = "keyword"
+            token = token.group(0)
 
-            elif token := Syntax.TERMINALS.get("integer_constant").match(buffer):
-                terminal = "integerConstant"
-                token = token.group(0)
+        elif token := Syntax.TERMINALS.get("integer_constant").match(buffer):
+            terminal = "integerConstant"
+            token = token.group(0)
 
-            elif token := Syntax.TERMINALS.get("string_constant").match(buffer):
-                terminal = "stringConstant"
-                token = token.group(1)
-                whites += 2
+        elif token := Syntax.TERMINALS.get("string_constant").match(buffer):
+            terminal = "stringConstant"
+            token = token.group(1)
+            whites += 2
 
-            elif token := Syntax.TERMINALS.get("identifier").match(buffer):
-                terminal = "identifier"
-                token = token.group(0)
+        elif token := Syntax.TERMINALS.get("identifier").match(buffer):
+            terminal = "identifier"
+            token = token.group(0)
 
-            if token:
-                self.current_token = Token(token_type=terminal, token_value=token)
-                # print("ter: " + terminal + " tok: " + token.__str__())
-                self._file_iterator.seek(cursor + whites + len(token))
+        if token:
+            self.current_token = Token(token_type=terminal, token_value=token)
+            # print("ter: " + terminal + " tok: " + token.__str__())
+            self._file_iterator.seek(cursor + whites + len(token))
+
+        else:
+            self.current_token = None
+
+
             # for terminal, matcher in Syntax.TERMINALS.items():
             #     if token := matcher.match(buffer):
             #         if terminal == "inline_comment":

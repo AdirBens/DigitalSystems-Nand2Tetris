@@ -27,7 +27,8 @@ class JackAnalyzer(object):
             while self.TOKENIZER.has_more_tokens():
                 self.TOKENIZER.advance()
                 token = self.TOKENIZER.current_token
-                self.ENGINE.append_node(token)
+                if token:
+                    self.ENGINE.append_node(token)
         # TODO: Consider to change the return value to status code
         return 0
 
