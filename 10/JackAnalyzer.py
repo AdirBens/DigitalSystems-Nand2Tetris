@@ -16,13 +16,20 @@ class JackAnalyzer(object):
     def __init__(self, input_path: str):
         self._set_io_files(input_path)
         self.TOKENIZER = JackTokenizer()
-        self.ENGINE = CompilationEngine(self.OUTPUT_FILE)
+        self.ENGINE = CompilationEngine(self.OUTPUT_FILE, debug=True)
 
     def analyze_code(self) -> int:
         """
         Returns: (int) analysis status code
         """
-        pass
+        for prog in self.INPUT_FILES:
+            self.TOKENIZER.set_input_file(prog)
+            while self.TOKENIZER.has_more_tokens():
+                self.TOKENIZER.advance()
+                token = self.TOKENIZER.current_token
+                self.ENGINE.append_node(token)
+        # TODO: Consider to change the return value to status code
+        return 0
 
     def _set_io_files(self, path: str) -> None:
         """

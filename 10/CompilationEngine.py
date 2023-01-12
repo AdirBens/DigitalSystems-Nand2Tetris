@@ -1,5 +1,7 @@
 import pathlib
 
+from Token import Token
+
 
 class CompilationEngine(object):
     """
@@ -15,7 +17,7 @@ class CompilationEngine(object):
     INPUT_FILE = None
     OUTPUT_FILE = None
 
-    def __init__(self, output: pathlib.Path):
+    def __init__(self, output: pathlib.Path, debug=False):
         """
         Creates a new compilation engine with the given input and output.
         The next routine called must be compileClass().
@@ -23,16 +25,9 @@ class CompilationEngine(object):
             output (pathlib.Path) -
         Returns: CompilationEngine object
         """
-        self.OUTPUT_FILE = output
-
-    def set_input_file(self, input_file: str) -> None:
-        """
-        Sets this CompilationEngine INPUT FILE to a given input_file
-        Args:
-            input_file (str) -
-        Returns: None
-        """
-        self.INPUT_FILE = input_file
+        if debug:
+            output = output.with_suffix(".xml_test")
+        self.OUTPUT_FILE = open(output, 'w')
 
     def compile_class(self) -> None:
         """
@@ -136,3 +131,9 @@ class CompilationEngine(object):
         Returns: None
         """
         pass
+
+    def append_node(self, token: Token, indent_lvl: int = 0) -> None:
+        """
+
+        """
+        self.OUTPUT_FILE.write(token.__str__() + "\n")
