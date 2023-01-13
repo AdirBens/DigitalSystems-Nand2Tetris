@@ -10,27 +10,32 @@ class JackAnalyzer(object):
     """
     Top-level driver that sets up and invokes the other modules;
     """
-    INPUT_FILES = None
-    OUTPUT_FILE = None
+    _input_files = None
+    _output_file = None
 
     def __init__(self, input_path: str):
         self._set_io_files(input_path)
-        self.TOKENIZER = JackTokenizer()
-        self.ENGINE = CompilationEngine(self.OUTPUT_FILE)
+        self.tokenizer = JackTokenizer()
+        self.engine = CompilationEngine(self._output_file)
 
-    def analyze_code(self) -> int:
+    def close(self) -> None:
         """
-        Returns: (int) analysis status code
+        JackAnalyzer destructor - close this tokenizer and engine
         """
-        for prog in self.INPUT_FILES:
-            self.TOKENIZER.set_input_file(prog)
-            while self.TOKENIZER.has_more_tokens():
-                self.TOKENIZER.advance()
-                token = self.TOKENIZER.current_token
-                if token:
-                    self.ENGINE.append_node(token)
-        # TODO: Consider to change the return value to status code
-        return 0
+        self.tokenizer.close()
+        self.engine.close()
+
+    def analyze_code(self) -> None:
+        """
+        """
+        for prog in self._input_files:
+            self.tokenizer.set_input_file(prog)
+            while self.tokenizer.has_more_tokens():
+                self.tokenizer.advance()
+                token = self.tokenizer.current_token
+                self.engine.append_node(token)
+
+        self.close()
 
     def _set_io_files(self, path: str) -> None:
         """
@@ -43,12 +48,12 @@ class JackAnalyzer(object):
         """
         path = pathlib.Path(path)
         if path.is_file() and path.suffix == ".jack":
-            self.INPUT_FILES = [path]
-            self.OUTPUT_FILE = path.with_suffix(".xml")
+            self._input_files = [path]
+            self._output_file = path.with_suffix(".xml")
 
         elif path.is_dir() and path.glob("*.jack").__sizeof__():
-            self.INPUT_FILES = list(path.glob("*.jack"))
-            self.OUTPUT_FILE = path.joinpath(f"{path.absolute().parts[-1]}.xml")
+            self._input_files = list(path.glob("*.jack"))
+            self._output_file = path.joinpath(f"{path.absolute().parts[-1]}.xml")
         else:
             raise InvalidInputFileError("The given path is not a single .jack file "
                                         "nor directory contains one or more .jack file")

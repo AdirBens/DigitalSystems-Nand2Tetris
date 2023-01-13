@@ -14,8 +14,7 @@ class CompilationEngine(object):
     Thus, compilexxx() may only be called if indeed xxx is the next syntactic element of the input.
     """
 
-    INPUT_FILE = None
-    OUTPUT_FILE = None
+    _output_file = None
 
     def __init__(self, output: pathlib.Path, debug=False):
         """
@@ -25,9 +24,8 @@ class CompilationEngine(object):
             output (pathlib.Path) -
         Returns: CompilationEngine object
         """
-        if debug:
-            output = output.with_suffix(".xml_test")
-        self.OUTPUT_FILE = open(output, 'w')
+        output = output.with_suffix(".xml_debug") if debug else output
+        self._output_file = open(output, 'w')
 
     def compile_class(self) -> None:
         """
@@ -132,8 +130,21 @@ class CompilationEngine(object):
         """
         pass
 
-    def append_node(self, token: Token, indent_lvl: int = 0) -> None:
+    def append_node(self, token: Token, indent_lvl: int = 0) -> bool:
         """
-
+        Write new XMl node to the output file.
+        Args:
+            token (Token) - a Token object which appends to the XML tree
+            indent_lvl (int) - the indentation level represents its hierarchy
+        Returns: (bool) true if new xml node append successfully,
+                        false in case of the given token is None
         """
-        self.OUTPUT_FILE.write(token.__str__() + "\n")
+        if token:
+            self._output_file.write(token.__str__() + "\n")
+        return bool(token)
+            
+    def close(self) -> None:
+        """
+        Closes The Output File
+        """
+        self._output_file.close()

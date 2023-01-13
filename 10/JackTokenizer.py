@@ -1,5 +1,3 @@
-import pathlib
-
 from Syntax import Syntax
 from Token import Token
 
@@ -9,20 +7,23 @@ class JackTokenizer(object):
     Removes all comments and white space from the input stream and breaks it into Jack-language tokens,
     as specified by the Jack grammar.
     """
-
     def __init__(self):
         """
         Opens the input file/stream and gets ready to tokenize it.
         Args:
         """
         self._file_iterator = None
-        self.current_token = None
+        self._current_token = None
 
-    def set_input_file(self, input_path: pathlib.Path) -> None:
+    @property
+    def current_token(self):
+        return self._current_token
+
+    def set_input_file(self, input_path) -> None:
         """
         Open input file and Sets it as JackTokenizer's input_file
         Args:
-            input_path (pathlib.Path) -
+            input_path (.jack program path as string or as a pathlib.Path object)
         Returns: None
         """
         if self._file_iterator:
@@ -46,7 +47,7 @@ class JackTokenizer(object):
         This method should only be called if @has_more_tokens() is true.
         Returns: None
         """
-        self.current_token = None
+        self._current_token = None
         self.set_cursor_to_code()
         cursor = self._file_iterator.tell()
         buffer = self._file_iterator.readline()
@@ -57,7 +58,7 @@ class JackTokenizer(object):
             if token := matcher.match(buffer):
                 token_value = token.group(0)
                 if terminal != "inlineComment":
-                    self.current_token = Token(token_type=terminal, token_value=token_value)
+                    self._current_token = Token(token_type=terminal, token_value=token_value)
                 self._file_iterator.seek(cursor + whites + len(token_value))
                 break
 
@@ -96,6 +97,5 @@ class JackTokenizer(object):
     def close(self) -> None:
         """
         Closes The Input File
-        Returns: None
         """
         self._file_iterator.close()
