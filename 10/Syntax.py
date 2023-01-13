@@ -3,28 +3,21 @@ import re
 
 class Syntax(object):
     """
-
+    The Jack language syntax
     """
-    # TODO: take a look of CPython Tokenizer https://github.com/python/cpython/blob/v3.7.4/Lib/tokenize.py
-
     TERMINALS = {
+        'inlineComment': re.compile("//.\\*"),
+
+        'symbol': re.compile("{|}|[(]|[)]|\\[|\\]|[|]|[.]|,|[;]|\\+|-|\\*|/|&|\\||<|>|=|~"),
+
         'keyword': re.compile("class|constructor|function|method|field|static|var"
                               "|int|char|boolean|void|true|false|null|"
                               "this|let|do|if|else|return|while(?=\\W)"),
 
-        'symbol': re.compile("{|}|[(]|[)]|\\[|\\]|[|]|[.]|,|[;]|\\+|-|\\*|/|&|\\||<|>|=|~"),
+        'integerConstant': re.compile("^[0-9]+"),
 
-        'integer_constant': re.compile("^[0-9]+"),
+        'stringConstant': re.compile("^\"([^\\n\"]+)\""),
 
-        'string_constant': re.compile("^\"([^\\n\"]+)\""),
-
-        'identifier': re.compile("^[a-zA-Z_]+\\w*"),
-
-        'inline_comment': re.compile("//.\\*")
+        'identifier': re.compile("^[a-zA-Z_]+\\w*")
     }
 
-    Comments = {
-        'startline': re.compile("^//"),
-        'open_multiline': re.compile("^/\\*"),
-        'end_multiline': re.compile("\\*/$")
-    }

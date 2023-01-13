@@ -16,7 +16,7 @@ class JackAnalyzer(object):
     def __init__(self, input_path: str):
         self._set_io_files(input_path)
         self.TOKENIZER = JackTokenizer()
-        self.ENGINE = CompilationEngine(self.OUTPUT_FILE, debug=True)
+        self.ENGINE = CompilationEngine(self.OUTPUT_FILE)
 
     def analyze_code(self) -> int:
         """
