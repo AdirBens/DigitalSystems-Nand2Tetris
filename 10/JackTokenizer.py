@@ -10,9 +10,8 @@ class JackTokenizer(object):
     def __init__(self):
         """
         Opens the input file/stream and gets ready to tokenize it.
-        Args:
         """
-        self._file_iterator = None
+        self.file_iterator = None
         self._current_token = None
 
     @property
@@ -24,20 +23,19 @@ class JackTokenizer(object):
         Open input file and Sets it as JackTokenizer's input_file
         Args:
             input_path (.jack program path as string or as a pathlib.Path object)
-        Returns: None
         """
-        if self._file_iterator:
+        if self.file_iterator:
             self.close()
-        self._file_iterator = open(input_path, 'r')
-        self._file_iterator.seek(0)
+        self.file_iterator = open(input_path, 'r')
+        self.file_iterator.seek(0)
 
     def has_more_tokens(self) -> bool:
         """
         Returns: true if there are more commands in the input, else false.
         """
-        cursor = self._file_iterator.tell()
-        has_more_tokens = bool(self._file_iterator.read(1))
-        self._file_iterator.seek(cursor)
+        cursor = self.file_iterator.tell()
+        has_more_tokens = bool(self.file_iterator.read(1))
+        self.file_iterator.seek(cursor)
 
         return has_more_tokens
 
@@ -45,12 +43,11 @@ class JackTokenizer(object):
         """
         Gets the next token from the input and makes it the current token.
         This method should only be called if @has_more_tokens() is true.
-        Returns: None
         """
         self._current_token = None
         self.set_cursor_to_code()
-        cursor = self._file_iterator.tell()
-        buffer = self._file_iterator.readline()
+        cursor = self.file_iterator.tell()
+        buffer = self.file_iterator.readline()
 
         whites, buffer = self.left_strip(buffer)
 
@@ -59,7 +56,7 @@ class JackTokenizer(object):
                 token_value = token.group(0)
                 if terminal != "inlineComment":
                     self._current_token = Token(token_type=terminal, token_value=token_value)
-                self._file_iterator.seek(cursor + whites + len(token_value))
+                self.file_iterator.seek(cursor + whites + len(token_value))
                 break
 
     def set_cursor_to_code(self) -> None:
@@ -67,21 +64,21 @@ class JackTokenizer(object):
         Sets the file cursor to the next actual code,
         by ignoring one-line and multi-lines comments, and blank lines
         """
-        cursor = self._file_iterator.tell()
-        buffer = self._file_iterator.readline()
+        cursor = self.file_iterator.tell()
+        buffer = self.file_iterator.readline()
 
         while buffer.lstrip().startswith("//") or buffer.isspace():
-            cursor = self._file_iterator.tell()
-            buffer = self._file_iterator.readline()
+            cursor = self.file_iterator.tell()
+            buffer = self.file_iterator.readline()
 
         if buffer.lstrip().startswith("/*"):
             end_multiline = False
             while not end_multiline:
                 end_multiline = buffer.endswith("*/\n")
-                cursor = self._file_iterator.tell()
-                buffer = self._file_iterator.readline()
+                cursor = self.file_iterator.tell()
+                buffer = self.file_iterator.readline()
 
-        self._file_iterator.seek(cursor)
+        self.file_iterator.seek(cursor)
 
     @staticmethod
     def left_strip(string: str) -> (int, str):
@@ -98,4 +95,4 @@ class JackTokenizer(object):
         """
         Closes The Input File
         """
-        self._file_iterator.close()
+        self.file_iterator.close()

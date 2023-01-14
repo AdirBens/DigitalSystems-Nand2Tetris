@@ -1,5 +1,6 @@
 import pathlib
 
+from JackTokenizer import JackTokenizer
 from Token import Token
 
 
@@ -15,8 +16,11 @@ class CompilationEngine(object):
     """
 
     _output_file = None
+    _tokenizer = None
+    current_token = None
+    next_token = None
 
-    def __init__(self, output: pathlib.Path, debug=False):
+    def __init__(self, output: pathlib.Path, tokenizer: JackTokenizer, debug=False):
         """
         Creates a new compilation engine with the given input and output.
         The next routine called must be compileClass().
@@ -26,92 +30,249 @@ class CompilationEngine(object):
         """
         output = output.with_suffix(".xml_debug") if debug else output
         self._output_file = open(output, 'w')
+        self._tokenizer = tokenizer
 
-    def compile_class(self) -> None:
+    def advance(self) -> None:
         """
         Compile a Complete class
         Returns: None
         """
-        pass
+        if self.current_token is None:
+            if self._tokenizer.has_more_tokens():
+                self._tokenizer.advance()
+                self.current_token = self._tokenizer.current_token
+            if self._tokenizer.has_more_tokens():
+                self._tokenizer.advance()
+                self.next_token = self._tokenizer.current_token
 
-    def compile_class_var_dec(self) -> None:
+        elif self._tokenizer.has_more_tokens():
+            self.current_token = self.next_token
+            self._tokenizer.advance()
+            self.next_token = self._tokenizer.current_token
+
+    def compile_class(self) -> None:
         """
         Compiles a static declaration or a field declaration.
         Returns: None
         """
-        pass
+        self.advance()
+        self.append_tag("<class>", 1)
 
-    def compile_subroutine(self) -> None:
+        while self.current_token.token_value != '{':
+            self.append_node(self.current_token, 1)
+
+        self.append_node(self.current_token, 1)  # print '{'
+
+        while self.current_token.token_value in {'static', 'field'}:
+            self.compile_class_var_dec(2)
+
+        while self.current_token.token_value in {'constructor', 'function', 'method'}:
+            self.compile_subroutine_dec(2)
+
+        self.append_node(self.current_token, 1, advance=False)
+        self.append_tag("</class>", 1)
+
+    def compile_class_var_dec(self, indent_lvl: int = 0) -> None:
+        """
+        Compiles a static declaration or a field declaration.
+        Returns: None
+        """
+        self.append_tag("<classVarDec>", indent_lvl)
+
+        while self.current_token.token_value != ";":
+            self.append_node(self.current_token, indent_lvl)
+
+        self.append_node(self.current_token, indent_lvl)  # prints ";")
+        self.append_tag("</classVarDec>", indent_lvl)
+
+    def compile_subroutine_dec(self, indent_lvl: int = 0) -> None:
         """
         Compiles a complete method, function or constructor
         Returns: None
         """
-        pass
+        self.append_tag("<subroutineDec>", indent_lvl)
 
-    def compile_parameter_list(self) -> None:
+        while self.current_token.token_value != "(":
+            self.append_node(self.current_token, indent_lvl)
+        # PARAMETER LIST
+        self.append_node(self.current_token, indent_lvl)  # prints "("
+        self.compile_parameter_list(indent_lvl + 1)
+        self.append_node(self.current_token, indent_lvl)  # prints ")"
+
+        # SUBROUTINE BODY
+        self.compile_subroutine_body(indent_lvl + 1)
+        self.append_tag("</subroutineDec>", indent_lvl)
+
+    def compile_subroutine_body(self, indent_lvl: int = 0) -> None:
+        self.append_tag("<subroutineBody>", indent_lvl)
+
+        self.append_node(self.current_token, indent_lvl)        # print "{"
+
+        while self.current_token.token_value != "}":
+            # VAR DEC
+            if self.current_token.token_value == "var":
+                self.compile_var_dec(indent_lvl + 1)
+            # STATEMENTS
+            else:
+                self.compile_statements(indent_lvl + 1)
+
+        self.append_node(self.current_token, indent_lvl)        # print "}"
+
+        self.append_tag("</subroutineBody>", indent_lvl)
+
+    def compile_parameter_list(self, indent_lvl: int = 0) -> None:
         """
         Compiles a (possibly empty) parameter list, not including the enclosing ‘‘()’’.
         Returns: None
         """
-        pass
+        self.append_tag("<parameterList>", indent_lvl)
 
-    def compile_var_dec(self) -> None:
+        while self.current_token.token_value != ")":
+            self.append_node(self.current_token, indent_lvl)
+
+        self.append_tag("</parameterList>", indent_lvl)
+
+    def compile_var_dec(self, indent_lvl: int = 0) -> None:
         """
         Compiles a var declaration
         Returns: None
         """
-        pass
+        self.append_tag("<varDec>", indent_lvl)
 
-    def compile_statement(self) -> None:
+        while self.current_token.token_value != ";":
+            self.append_node(self.current_token, indent_lvl)
+
+        self.append_node(self.current_token, indent_lvl)  # prints ";")
+        self.append_tag("</varDec>", indent_lvl)
+
+    def compile_statements(self, indent_lvl: int = 0) -> None:
         """
         Compiles a sequence of statements, not including the enclosing ‘‘{}’’.
         Returns: None
         """
-        pass
+        # statements = {'let': self.compile_let, 'if': self.compile_if, 'while': self.compile_while,
+        #               'do': self.compile_do, 'return': self.compile_return}
+        self.append_tag("<statement>", indent_lvl)
 
-    def compile_do(self) -> None:
+        while self.current_token.token_value in {'let', 'if', 'while', 'do', 'return'}:
+            if self.current_token.token_value == "let": self.compile_let(indent_lvl + 1)
+            elif self.current_token.token_value == "do": self.compile_do(indent_lvl + 1)
+            elif self.current_token.token_value == "if": self.compile_if(indent_lvl + 1)
+            elif self.current_token.token_value == "while": self.compile_while(indent_lvl + 1)
+            elif self.current_token.token_value == "return": self.compile_return(indent_lvl + 1)
+
+        self.append_tag("</statement>", indent_lvl)
+
+    def compile_do(self, indent_lvl: int = 0) -> None:
         """
         Compiles a 'do' statement
-        Returns: None
+        Actually implements subroutineCall
         """
-        pass
+        self.append_tag("<doStatement>", indent_lvl)
+        self.append_node(self.current_token, indent_lvl)
 
-    def compile_let(self) -> None:
+        if self.next_token == ".":
+            self.append_node(self.current_token, indent_lvl)     # prints "."
+            self.append_node(self.current_token, indent_lvl)     # prints `subroutineName`
+
+        # EXPRESSION LIST
+        self.append_node(self.current_token, indent_lvl)        # prints "("
+        self.compile_expression_list(indent_lvl + 1)            # EXPRESSION LIST
+        self.append_node(self.current_token, indent_lvl)        # prints ")"
+
+        self.append_tag("</doStatement>", indent_lvl)
+
+    def compile_let(self, indent_lvl: int = 0) -> None:
         """
         Compiles a 'let' statement
         Returns: None
         """
-        pass
+        self.append_tag("<letStatement>", indent_lvl)
 
-    def compile_while(self) -> None:
+        while self.current_token.token_value != ";":
+            if self.current_token.token_value == "[":
+                self.append_node(self.current_token, indent_lvl)    # prints "["
+                self.compile_expression(indent_lvl + 1)             # EXPRESSION
+                self.append_node(self.current_token, indent_lvl)    # prints "]"
+            self.append_node(self.current_token, indent_lvl)        # prints "="
+            self.compile_expression(indent_lvl + 1)                 # EXPRESSION
+
+        self.append_node(self.current_token, indent_lvl)  # prints ";"
+        self.append_tag("</letStatement>", indent_lvl)
+
+    def compile_while(self, indent_lvl: int = 0) -> None:
         """
         Compiles a 'while' statements
         Returns: None
         """
-        pass
+        self.append_tag("<whileStatement>", indent_lvl)
 
-    def compile_return(self) -> None:
+        self.append_node(self.current_token, indent_lvl)        # prints "while"
+        self.compile_expression(indent_lvl)                     # prints "("
+        self.compile_expression(indent_lvl + 1)                 # EXPRESSION
+        self.compile_expression(indent_lvl)                     # prints ")"
+
+        self.append_node(self.current_token, indent_lvl)        # prints "{"
+        self.compile_statements(indent_lvl + 1)                 # STATEMENTS
+        self.append_node(self.current_token, indent_lvl)        # prints "}"
+
+        self.append_tag("</whileStatement>", indent_lvl)
+
+    def compile_return(self, indent_lvl: int = 0) -> None:
         """
         Compiles a 'return' statement
         Returns: None
         """
-        pass
+        self.append_tag("<returnStatement>", indent_lvl)
+        self.append_node(self.current_token, indent_lvl)
 
-    def compile_if(self) -> None:
+        if self.current_token.token_value != ";":
+            self.compile_expression(indent_lvl + 1)
+
+        self.append_node(self.current_token, indent_lvl)
+        self.append_tag("</returnStatement>", indent_lvl)
+
+    def compile_if(self, indent_lvl: int = 0) -> None:
         """
         Compiles an 'if' statement
         Returns: None
         """
-        pass
+        self.append_tag("<ifStatement>", indent_lvl)
 
-    def compile_expression(self) -> None:
+        # IF
+        self.append_node(self.current_token, indent_lvl)            # prints "if"
+        # EXPRESSION
+        self.append_node(self.current_token, indent_lvl)            # prints "("
+        self.compile_expression(indent_lvl + 1)
+        self.append_node(self.current_token, indent_lvl)  # prints ")"
+        # STATEMENTS
+        self.append_node(self.current_token, indent_lvl)  # prints "{"
+        self.compile_statements(indent_lvl + 1)
+        self.append_node(self.current_token, indent_lvl)  # prints "}"
+
+        # ELSE
+        if self.current_token.token_value == "else":
+            self.append_node(self.current_token, indent_lvl)       # prints "else"
+            # STATEMENTS
+            self.append_node(self.current_token, indent_lvl)  # prints "{"
+            self.compile_statements(indent_lvl + 1)
+            self.append_node(self.current_token, indent_lvl)  # prints "}"
+
+        self.append_tag("</ifStatement>", indent_lvl)
+
+    def compile_expression(self, indent_lvl: int = 0) -> None:
         """
         Compiles an expression
         Returns: None
         """
-        pass
+        self.append_tag("<expression>", indent_lvl)
+        # TERM
+        self.compile_term(indent_lvl + 1)
 
-    def compile_term(self) -> None:
+    
+        self.append_tag("</expression>", indent_lvl)
+
+    def compile_term(self, indent_lvl: int = 0) -> None:
         """
         Compiles a term.
         This routine is faced with a difficulty when trying to decide between some alternative parsing rules.
@@ -123,26 +284,31 @@ class CompilationEngine(object):
         """
         pass
 
-    def compile_expression_list(self) -> None:
+    def compile_expression_list(self, indent_lvl: int = 0) -> None:
         """
         Compiles a (possibly empty) comma-separated list of expressions.
         Returns: None
         """
         pass
 
-    def append_node(self, token: Token, indent_lvl: int = 0) -> bool:
+    def append_node(self, token: Token, indent_lvl: int = 0, advance: bool = True) -> bool:
         """
         Write new XMl node to the output file.
         Args:
             token (Token) - a Token object which appends to the XML tree
             indent_lvl (int) - the indentation level represents its hierarchy
+            advance (bool) -
         Returns: (bool) true if new xml node append successfully,
                         false in case of the given token is None
         """
         if token:
-            self._output_file.write(token.__str__() + "\n")
+            self._output_file.write('\t' * indent_lvl + token.__str__() + "\n")
+            self.advance()
         return bool(token)
-            
+
+    def append_tag(self, tag: str, indent_lvl: int = 0):
+        self._output_file.write((indent_lvl - 1) * "\t" + tag + "\n")
+
     def close(self) -> None:
         """
         Closes The Output File

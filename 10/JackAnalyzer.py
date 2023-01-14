@@ -16,7 +16,7 @@ class JackAnalyzer(object):
     def __init__(self, input_path: str):
         self._set_io_files(input_path)
         self.tokenizer = JackTokenizer()
-        self.engine = CompilationEngine(self._output_file)
+        self.engine = CompilationEngine(output=self._output_file, tokenizer=self.tokenizer)
 
     def close(self) -> None:
         """
@@ -30,11 +30,8 @@ class JackAnalyzer(object):
         """
         for prog in self._input_files:
             self.tokenizer.set_input_file(prog)
-            while self.tokenizer.has_more_tokens():
-                self.tokenizer.advance()
-                token = self.tokenizer.current_token
-                self.engine.append_node(token)
-
+            if self.tokenizer.has_more_tokens():
+                self.engine.compile_class()
         self.close()
 
     def _set_io_files(self, path: str) -> None:
