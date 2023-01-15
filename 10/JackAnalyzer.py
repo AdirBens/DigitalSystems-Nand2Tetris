@@ -1,7 +1,6 @@
 import argparse
 import pathlib
 
-from error import InvalidInputFileError
 from CompilationEngine import CompilationEngine
 from JackTokenizer import JackTokenizer
 
@@ -16,7 +15,7 @@ class JackAnalyzer(object):
     def __init__(self, input_path: str):
         self._set_io_files(input_path)
         self.tokenizer = JackTokenizer()
-        self.engine = CompilationEngine(output=self._output_file, tokenizer=self.tokenizer, debug=True)
+        self.engine = CompilationEngine(output=self._output_file, tokenizer=self.tokenizer)
 
     def close(self) -> None:
         """
@@ -51,8 +50,8 @@ class JackAnalyzer(object):
         elif path.is_dir() and path.glob("*.jack").__sizeof__():
             self._input_files = list(path.glob("*.jack"))
         else:
-            raise InvalidInputFileError("The given path is not a single .jack file "
-                                        "nor directory contains one or more .jack file")
+            raise FileNotFoundError("The given path is not a single .jack file "
+                                    "nor directory contains one or more .jack file")
 
 
 def main():

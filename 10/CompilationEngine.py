@@ -333,7 +333,7 @@ class CompilationEngine(object):
             elif self.current_token.token_value == '[':
                 # EXPRESSION
                 self.append_node(self.current_token, indent_lvl)  # prints "["
-                self.compile_expression_list(indent_lvl + 1)      # EXPRESSION
+                self.compile_expression(indent_lvl + 1)      # EXPRESSION
                 self.append_node(self.current_token, indent_lvl)  # prints "]"
 
         self.append_tag("</term>", indent_lvl)
