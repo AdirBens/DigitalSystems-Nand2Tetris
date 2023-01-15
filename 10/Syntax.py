@@ -21,5 +21,5 @@ class Syntax(object):
         'identifier': re.compile("^[a-zA-Z_]+\\w*")
     }
 
-    OP = ["+", "-", "*", "/", "&", "|", "<", ">", "="]
+    OP = ["+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "="]
     UNARY = ["-", "~"]
