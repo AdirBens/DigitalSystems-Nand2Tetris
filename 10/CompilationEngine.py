@@ -1,6 +1,7 @@
 import pathlib
 
 from JackTokenizer import JackTokenizer
+from Syntax import Syntax
 from Token import Token
 
 
@@ -37,6 +38,7 @@ class CompilationEngine(object):
         Compile a Complete class
         Returns: None
         """
+        # PROBLEM HERE TODO: FIX
         if self.current_token is None:
             if self._tokenizer.has_more_tokens():
                 self._tokenizer.advance()
@@ -268,8 +270,10 @@ class CompilationEngine(object):
         self.append_tag("<expression>", indent_lvl)
         # TERM
         self.compile_term(indent_lvl + 1)
+        # (OP TERM)*
+        while self.current_token.token_value in Syntax.OP:
+            self.append_node(self.current_token, indent_lvl + 1)
 
-    
         self.append_tag("</expression>", indent_lvl)
 
     def compile_term(self, indent_lvl: int = 0) -> None:
@@ -282,7 +286,8 @@ class CompilationEngine(object):
         not be advanced over.
         Returns: None
         """
-        pass
+        if self.current_token.token_type == "identifier":
+            pass
 
     def compile_expression_list(self, indent_lvl: int = 0) -> None:
         """
