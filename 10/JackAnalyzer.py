@@ -16,7 +16,7 @@ class JackAnalyzer(object):
     def __init__(self, input_path: str):
         self._set_io_files(input_path)
         self.tokenizer = JackTokenizer()
-        self.engine = CompilationEngine(output=self._output_file, tokenizer=self.tokenizer)
+        self.engine = CompilationEngine(output=self._output_file, tokenizer=self.tokenizer, debug=True)
 
     def close(self) -> None:
         """
@@ -30,6 +30,7 @@ class JackAnalyzer(object):
         """
         for prog in self._input_files:
             self.tokenizer.set_input_file(prog)
+            self.engine.set_out_file(prog)
             if self.tokenizer.has_more_tokens():
                 self.engine.compile_class()
         self.close()
@@ -46,11 +47,9 @@ class JackAnalyzer(object):
         path = pathlib.Path(path)
         if path.is_file() and path.suffix == ".jack":
             self._input_files = [path]
-            self._output_file = path.with_suffix(".xml")
 
         elif path.is_dir() and path.glob("*.jack").__sizeof__():
             self._input_files = list(path.glob("*.jack"))
-            self._output_file = path.joinpath(f"{path.absolute().parts[-1]}.xml")
         else:
             raise InvalidInputFileError("The given path is not a single .jack file "
                                         "nor directory contains one or more .jack file")

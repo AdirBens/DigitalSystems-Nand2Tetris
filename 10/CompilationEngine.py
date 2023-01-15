@@ -29,9 +29,13 @@ class CompilationEngine(object):
             output (pathlib.Path) -
         Returns: CompilationEngine object
         """
-        output = output.with_suffix(".xml_debug") if debug else output
-        self._output_file = open(output, 'w')
         self._tokenizer = tokenizer
+        self._debug = debug
+
+    def set_out_file(self, prog_path: pathlib.Path):
+        self.close()
+        out_path = prog_path.with_suffix(".xml_debug") if self._debug else prog_path.with_suffix(".xml")
+        self._output_file = open(out_path, 'w')
 
     def advance(self) -> None:
         """
@@ -371,4 +375,8 @@ class CompilationEngine(object):
         """
         Closes The Output File
         """
-        self._output_file.close()
+        if self._output_file:
+            self._output_file.close()
+
+        self.current_token = None
+        self.next_token = None
