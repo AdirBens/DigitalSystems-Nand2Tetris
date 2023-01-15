@@ -67,16 +67,16 @@ class JackTokenizer(object):
         cursor = self.file_iterator.tell()
         buffer = self.file_iterator.readline()
 
-        while buffer.lstrip().startswith("//") or buffer.isspace():
+        while buffer.lstrip().startswith("//") or buffer.isspace() or buffer == '\n':
             cursor = self.file_iterator.tell()
             buffer = self.file_iterator.readline()
 
-        if buffer.lstrip().startswith("/*"):
-            end_multiline = False
-            while not end_multiline:
-                end_multiline = buffer.endswith("*/\n")
-                cursor = self.file_iterator.tell()
-                buffer = self.file_iterator.readline()
+            if buffer.lstrip().startswith("/*"):
+                end_multiline = False
+                while not end_multiline:
+                    end_multiline = buffer.endswith("*/\n")
+                    cursor = self.file_iterator.tell()
+                    buffer = self.file_iterator.readline()
 
         self.file_iterator.seek(cursor)
 
