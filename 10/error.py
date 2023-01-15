@@ -5,7 +5,7 @@ JackCompiler Errors
 
 class JackSyntaxError(Exception):
     """
-    Jack Syntax Error - Syntx violation encounter while tokenize or parse jack program
+    Jack Syntax Error - Syntax violation encounter while tokenize or parse jack program
     """
     pass
 

@@ -1,6 +1,6 @@
 import argparse
 import pathlib
-import error
+
 from CompilationEngine import CompilationEngine
 from JackTokenizer import JackTokenizer
 
@@ -9,22 +9,30 @@ class JackAnalyzer(object):
     """
     Top-level driver that sets up and invokes the other modules;
     """
-    INPUT_FILES = None
-    OUTPUT_FILE = None
-
-    TOKENIZER = None
-    ENGINE = None
+    _input_files = None
+    _output_file = None
 
     def __init__(self, input_path: str):
         self._set_io_files(input_path)
-        self.TOKENIZER = JackTokenizer()
-        self.ENGINE = CompilationEngine(self.OUTPUT_FILE)
+        self.tokenizer = JackTokenizer()
+        self.engine = CompilationEngine(output=self._output_file, tokenizer=self.tokenizer)
 
-    def analyze_code(self) -> int:
+    def close(self) -> None:
         """
-        Returns: (int) analysis status code
+        JackAnalyzer destructor - close this tokenizer and engine
         """
-        pass
+        self.tokenizer.close()
+        self.engine.close()
+
+    def analyze_code(self) -> None:
+        """
+        """
+        for prog in self._input_files:
+            self.tokenizer.set_input_file(prog)
+            self.engine.set_out_file(prog)
+            if self.tokenizer.has_more_tokens():
+                self.engine.compile_class()
+        self.close()
 
     def _set_io_files(self, path: str) -> None:
         """
@@ -37,22 +45,19 @@ class JackAnalyzer(object):
         """
         path = pathlib.Path(path)
         if path.is_file() and path.suffix == ".jack":
-            self.INPUT_FILES = [path]
-            self.OUTPUT_FILE = path.with_suffix(".xml")
+            self._input_files = [path]
 
         elif path.is_dir() and path.glob("*.jack").__sizeof__():
-            self.INPUT_FILES = list(path.glob("*.jack"))
-            self.OUTPUT_FILE = path.joinpath(f"{path.absolute().parts[-1]}.xml")
+            self._input_files = list(path.glob("*.jack"))
         else:
-            raise error.InvalidInputFileError("The given path is not a single .jack file "
-                                              "nor directory contains one or more .jack file")
+            raise FileNotFoundError("The given path is not a single .jack file "
+                                    "nor directory contains one or more .jack file")
 
 
 def main():
     cli_parser = argparse.ArgumentParser(prog="JackAnalyzer",
                                          description="SyntaxAnalyzer - As Jack Compilation First Stage")
-    cli_parser.add_argument('program_path', action='store',
-                            help="path to a .vm file or directory containing .vm files")
+    cli_parser.add_argument('program_path', action='store', help="path to .jack file or directory contains .jack files")
     args = cli_parser.parse_args()
 
     analyzer = JackAnalyzer(args.program_path)

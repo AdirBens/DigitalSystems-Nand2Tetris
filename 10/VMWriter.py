@@ -36,7 +36,7 @@ class VMWriter(object):
         Writes a VM arithmetic command
         Args:
             command (str) - ADD, SUB, NEG, EQ, GT, LT, AND, OR, NOT
-        :Returns: None
+        Returns: None
         """
         pass
 
