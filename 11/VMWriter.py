@@ -9,7 +9,8 @@ class VMWriter(object):
         """
         Creates a new VMWriter, set out file and prepares it for writing.
         """
-        pass
+        self.out_file = None
+        self.label_counter = 0
 
     def write_push(self, segment: str, index: int) -> None:
         """
@@ -19,7 +20,7 @@ class VMWriter(object):
             index (int) -
         Returns: None
         """
-        pass
+        self.out_file.write(f'push {segment} {index}')
 
     def write_pop(self, segment: str, index: int) -> None:
         """
@@ -29,7 +30,7 @@ class VMWriter(object):
             index (int) -
         Returns: None
         """
-        pass
+        self.out_file.write(f'pop {segment} {index}')
 
     def write_arithmetic(self, command: str) -> None:
         """
@@ -67,7 +68,7 @@ class VMWriter(object):
         """
         pass
 
-    def write_call(self, name: str, n_args: int) -> None:
+    def write_call(self, name: str, n_args: int, class_name: str = None) -> None:
         """
         Writes a VM 'call' command
         Args:
@@ -75,7 +76,10 @@ class VMWriter(object):
             n_args (int) -
         Returns: None
         """
-        pass
+        if class_name:
+            self.out_file.write(f'call {class_name}.{name} {n_args}')
+        else:
+            self.out_file.write(f'call {name} {n_args}')
 
     def write_function(self, name: str, l_locals: int) -> None:
         """

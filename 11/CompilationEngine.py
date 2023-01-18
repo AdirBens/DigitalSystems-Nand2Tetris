@@ -1,6 +1,8 @@
 import pathlib
 
 from JackTokenizer import JackTokenizer
+from Symbol import Symbol
+from SymbolTable import SymbolTable
 from Syntax import Syntax
 from Token import Token
 
@@ -18,6 +20,8 @@ class CompilationEngine(object):
 
     _output_file = None
     _tokenizer = None
+    _symbol_table = None
+    _current_class = None
     current_token = None
     next_token = None
 
@@ -56,18 +60,20 @@ class CompilationEngine(object):
             self._tokenizer.advance()
             self.next_token = self._tokenizer.current_token
 
+    # TODO: INTEGRATE WITH SYMBOL TABLE
     def compile_class(self) -> None:
         """
         Compiles a static declaration or a field declaration.
         Returns: None
         """
+        self._symbol_table = SymbolTable()
         self.advance()
         self.append_tag("<class>", 1)
 
-        while self.current_token.token_value != '{':
-            self.append_node(self.current_token, 1)
+        self.append_node(self.current_token, 1)  # prints class
+        self._current_class = self.append_node(self.current_token, 1)  # prints class_name
 
-        self.append_node(self.current_token, 1)  # print '{'
+        self.append_node(self.current_token, 1)  # prints '{'
 
         while self.current_token.token_value in {'static', 'field'}:
             self.compile_class_var_dec(2)
@@ -75,7 +81,7 @@ class CompilationEngine(object):
         while self.current_token.token_value in {'constructor', 'function', 'method'}:
             self.compile_subroutine_dec(2)
 
-        self.append_node(self.current_token, 1, advance=False)
+        self.append_node(self.current_token, 1, advance=False)  # prints '}'
         self.append_tag("</class>", 1)
 
     def compile_class_var_dec(self, indent_lvl: int = 0) -> None:
@@ -84,11 +90,24 @@ class CompilationEngine(object):
         Returns: None
         """
         self.append_tag("<classVarDec>", indent_lvl)
+        var_symbol = Symbol()
+        var_symbol.set_kind(self.append_node(self.current_token, indent_lvl))  # Add Var Kind
+        var_symbol.set_type(self.append_node(self.current_token, indent_lvl))  # Add Var Type
+        var_symbol.set_name(self.append_node(self.current_token, indent_lvl))  # Add Var Name
+
+        self._symbol_table.add_symbol(var_symbol)
+        self.append_symbol(var_symbol, indent_lvl)
 
         while self.current_token.token_value != ";":
-            self.append_node(self.current_token, indent_lvl)
+            var_symbol = Symbol(symbol_type=var_symbol.type, symbol_kind=var_symbol.kind)
+            if self.current_token.token_value != ',':
+                var_symbol.set_name(self.append_node(self.current_token, indent_lvl))
+                self._symbol_table.add_symbol(var_symbol)
+                self.append_symbol(var_symbol, indent_lvl)
+            else:
+                self.append_node(self.current_token, indent_lvl)  # prints ","
 
-        self.append_node(self.current_token, indent_lvl)  # prints ";")
+        self.append_node(self.current_token, indent_lvl)  # prints ";"
         self.append_tag("</classVarDec>", indent_lvl)
 
     def compile_subroutine_dec(self, indent_lvl: int = 0) -> None:
@@ -97,6 +116,11 @@ class CompilationEngine(object):
         Returns: None
         """
         self.append_tag("<subroutineDec>", indent_lvl)
+        self._symbol_table.start_subroutine()
+        if self.current_token.token_value == "method":
+            this_symbol = Symbol(name="this", symbol_type=self._current_class, symbol_kind="argument")
+            self._symbol_table.add_symbol(this_symbol)
+            self.append_symbol(this_symbol, indent_lvl)
 
         while self.current_token.token_value != "(":
             self.append_node(self.current_token, indent_lvl)
@@ -112,7 +136,7 @@ class CompilationEngine(object):
     def compile_subroutine_body(self, indent_lvl: int = 0) -> None:
         self.append_tag("<subroutineBody>", indent_lvl)
 
-        self.append_node(self.current_token, indent_lvl)        # print "{"
+        self.append_node(self.current_token, indent_lvl)  # print "{"
 
         while self.current_token.token_value != "}":
             # VAR DEC
@@ -122,7 +146,7 @@ class CompilationEngine(object):
             else:
                 self.compile_statements(indent_lvl + 1)
 
-        self.append_node(self.current_token, indent_lvl)        # print "}"
+        self.append_node(self.current_token, indent_lvl)  # print "}"
 
         self.append_tag("</subroutineBody>", indent_lvl)
 
@@ -134,7 +158,13 @@ class CompilationEngine(object):
         self.append_tag("<parameterList>", indent_lvl)
 
         while self.current_token.token_value != ")":
-            self.append_node(self.current_token, indent_lvl)
+            arg_symbol = Symbol(symbol_kind="argument")
+            arg_symbol.type = self.append_node(self.current_token, indent_lvl)
+            arg_symbol.name = self.append_node(self.current_token, indent_lvl)
+            self._symbol_table.add_symbol(arg_symbol)
+            self.append_symbol(arg_symbol, indent_lvl)
+            if self.current_token.token_value == ",":
+                self.append_node(self.current_token, indent_lvl)
 
         self.append_tag("</parameterList>", indent_lvl)
 
@@ -145,10 +175,25 @@ class CompilationEngine(object):
         """
         self.append_tag("<varDec>", indent_lvl)
 
-        while self.current_token.token_value != ";":
-            self.append_node(self.current_token, indent_lvl)
+        var_symbol = Symbol()
+        var_symbol.set_kind(
+            'local' if self.append_node(self.current_token, indent_lvl) == 'var' else None)  # Add Var Kind
+        var_symbol.set_type(self.append_node(self.current_token, indent_lvl))  # Add Var Type
+        var_symbol.set_name(self.append_node(self.current_token, indent_lvl))  # Add Var Name
 
-        self.append_node(self.current_token, indent_lvl)  # prints ";")
+        self._symbol_table.add_symbol(var_symbol)
+        self.append_symbol(var_symbol, indent_lvl)
+
+        while self.current_token.token_value != ";":
+            var_symbol = Symbol(symbol_type=var_symbol.type, symbol_kind=var_symbol.kind)
+            if self.current_token.token_value != ',':
+                var_symbol.set_name(self.append_node(self.current_token, indent_lvl))
+                self._symbol_table.add_symbol(var_symbol)
+                self.append_symbol(var_symbol, indent_lvl)
+            else:
+                self.append_node(self.current_token, indent_lvl)  # prints ","
+
+        self.append_node(self.current_token, indent_lvl)  # prints ";"
         self.append_tag("</varDec>", indent_lvl)
 
     def compile_statements(self, indent_lvl: int = 0) -> None:
@@ -161,11 +206,16 @@ class CompilationEngine(object):
         self.append_tag("<statements>", indent_lvl)
 
         while self.current_token.token_value in {'let', 'if', 'while', 'do', 'return'}:
-            if self.current_token.token_value == "let": self.compile_let(indent_lvl + 1)
-            elif self.current_token.token_value == "do": self.compile_do(indent_lvl + 1)
-            elif self.current_token.token_value == "if": self.compile_if(indent_lvl + 1)
-            elif self.current_token.token_value == "while": self.compile_while(indent_lvl + 1)
-            elif self.current_token.token_value == "return": self.compile_return(indent_lvl + 1)
+            if self.current_token.token_value == "let":
+                self.compile_let(indent_lvl + 1)
+            elif self.current_token.token_value == "do":
+                self.compile_do(indent_lvl + 1)
+            elif self.current_token.token_value == "if":
+                self.compile_if(indent_lvl + 1)
+            elif self.current_token.token_value == "while":
+                self.compile_while(indent_lvl + 1)
+            elif self.current_token.token_value == "return":
+                self.compile_return(indent_lvl + 1)
 
         self.append_tag("</statements>", indent_lvl)
 
@@ -179,15 +229,15 @@ class CompilationEngine(object):
         self.append_node(self.current_token, indent_lvl)  # prints (className | varName) | subroutineName
 
         if self.current_token.token_value == ".":
-            self.append_node(self.current_token, indent_lvl)     # prints "."
-            self.append_node(self.current_token, indent_lvl)     # prints `subroutineName`
+            self.append_node(self.current_token, indent_lvl)  # prints "."
+            self.append_node(self.current_token, indent_lvl)  # prints `subroutineName`
 
         # EXPRESSION LIST
-        self.append_node(self.current_token, indent_lvl)        # prints "("
-        self.compile_expression_list(indent_lvl + 1)            # EXPRESSION LIST
-        self.append_node(self.current_token, indent_lvl)        # prints ")"
+        self.append_node(self.current_token, indent_lvl)  # prints "("
+        self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
+        self.append_node(self.current_token, indent_lvl)  # prints ")"
 
-        self.append_node(self.current_token, indent_lvl)        # prints `;`
+        self.append_node(self.current_token, indent_lvl)  # prints `;`
 
         self.append_tag("</doStatement>", indent_lvl)
 
@@ -199,8 +249,8 @@ class CompilationEngine(object):
         self.append_tag("<letStatement>", indent_lvl)
 
         # while self.current_token.token_value != ";":
-        self.append_node(self.current_token, indent_lvl)        # prints "let"
-        self.append_node(self.current_token, indent_lvl)        # prints varName
+        self.append_node(self.current_token, indent_lvl)  # prints "let"
+        self.append_node(self.current_token, indent_lvl)  # prints varName
 
         # [EXPRESSION]
         if self.current_token.token_value == "[":
@@ -208,8 +258,8 @@ class CompilationEngine(object):
             self.compile_expression(indent_lvl + 1)
             self.append_node(self.current_token, indent_lvl)
 
-        self.append_node(self.current_token, indent_lvl)        # prints "="
-        self.compile_expression(indent_lvl + 1)                 # EXPRESSION
+        self.append_node(self.current_token, indent_lvl)  # prints "="
+        self.compile_expression(indent_lvl + 1)  # EXPRESSION
 
         self.append_node(self.current_token, indent_lvl)  # prints ";"
         self.append_tag("</letStatement>", indent_lvl)
@@ -221,14 +271,14 @@ class CompilationEngine(object):
         """
         self.append_tag("<whileStatement>", indent_lvl)
 
-        self.append_node(self.current_token, indent_lvl)        # prints "while"
-        self.append_node(self.current_token, indent_lvl)        # prints "("
-        self.compile_expression(indent_lvl + 1)                 # EXPRESSION
-        self.append_node(self.current_token, indent_lvl)        # prints ")"
+        self.append_node(self.current_token, indent_lvl)  # prints "while"
+        self.append_node(self.current_token, indent_lvl)  # prints "("
+        self.compile_expression(indent_lvl + 1)  # EXPRESSION
+        self.append_node(self.current_token, indent_lvl)  # prints ")"
 
-        self.append_node(self.current_token, indent_lvl)        # prints "{"
-        self.compile_statements(indent_lvl + 1)                 # STATEMENTS
-        self.append_node(self.current_token, indent_lvl)        # prints "}"
+        self.append_node(self.current_token, indent_lvl)  # prints "{"
+        self.compile_statements(indent_lvl + 1)  # STATEMENTS
+        self.append_node(self.current_token, indent_lvl)  # prints "}"
 
         self.append_tag("</whileStatement>", indent_lvl)
 
@@ -254,9 +304,9 @@ class CompilationEngine(object):
         self.append_tag("<ifStatement>", indent_lvl)
 
         # IF
-        self.append_node(self.current_token, indent_lvl)            # prints "if"
+        self.append_node(self.current_token, indent_lvl)  # prints "if"
         # EXPRESSION
-        self.append_node(self.current_token, indent_lvl)            # prints "("
+        self.append_node(self.current_token, indent_lvl)  # prints "("
         self.compile_expression(indent_lvl + 1)
         self.append_node(self.current_token, indent_lvl)  # prints ")"
         # STATEMENTS
@@ -266,7 +316,7 @@ class CompilationEngine(object):
 
         # ELSE
         if self.current_token.token_value == "else":
-            self.append_node(self.current_token, indent_lvl)       # prints "else"
+            self.append_node(self.current_token, indent_lvl)  # prints "else"
             # STATEMENTS
             self.append_node(self.current_token, indent_lvl)  # prints "{"
             self.compile_statements(indent_lvl + 1)
@@ -326,14 +376,14 @@ class CompilationEngine(object):
 
                 # (EXPRESSION LIST)
                 self.append_node(self.current_token, indent_lvl)  # prints "("
-                self.compile_expression_list(indent_lvl + 1)      # EXPRESSION LIST
+                self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
                 self.append_node(self.current_token, indent_lvl)  # prints ")"
 
             # [EXPRESSION]
             elif self.current_token.token_value == '[':
                 # EXPRESSION
                 self.append_node(self.current_token, indent_lvl)  # prints "["
-                self.compile_expression(indent_lvl + 1)      # EXPRESSION
+                self.compile_expression(indent_lvl + 1)  # EXPRESSION
                 self.append_node(self.current_token, indent_lvl)  # prints "]"
 
         self.append_tag("</term>", indent_lvl)
@@ -345,15 +395,15 @@ class CompilationEngine(object):
         """
         self.append_tag("<expressionList>", indent_lvl)
 
-        if self.current_token.token_value != ')':                   # checks if the expressionList is closed
+        if self.current_token.token_value != ')':  # checks if the expressionList is closed
             self.compile_expression(indent_lvl + 1)
             while self.current_token.token_value == ',':
-                self.append_node(self.current_token, indent_lvl)    # prints ','
+                self.append_node(self.current_token, indent_lvl)  # prints ','
                 self.compile_expression(indent_lvl + 1)
 
         self.append_tag("</expressionList>", indent_lvl)
 
-    def append_node(self, token: Token, indent_lvl: int = 0, advance: bool = True) -> bool:
+    def append_node(self, token: Token, indent_lvl: int = 0, advance: bool = True) -> Token.token_value:
         """
         Write new XMl node to the output file.
         Args:
@@ -363,10 +413,25 @@ class CompilationEngine(object):
         Returns: (bool) true if new xml node append successfully,
                         false in case of the given token is None
         """
+        token_value = None
         if token:
             self._output_file.write('\t' * indent_lvl + token.__str__() + "\n")
+            token_value = self.current_token.token_value
             self.advance()
-        return bool(token)
+        return token_value
+
+    def append_symbol(self, symbol: Symbol, indent_lvl: int = 0) -> None:
+        """
+        Write new XMl node to the output file.
+        Args:
+            token (Token) - a Token object which appends to the XML tree
+            indent_lvl (int) - the indentation level represents its hierarchy
+            advance (bool) -
+        Returns: (bool) true if new xml node append successfully,
+                        false in case of the given token is None
+        """
+        if symbol:
+            self._output_file.write('\t' * indent_lvl + symbol.__repr__() + "\n")
 
     def append_tag(self, tag: str, indent_lvl: int = 0):
         self._output_file.write((indent_lvl - 1) * "\t" + tag + "\n")
@@ -377,6 +442,7 @@ class CompilationEngine(object):
         """
         if self._output_file:
             self._output_file.close()
-
+        if self._symbol_table:
+            self._symbol_table.close()
         self.current_token = None
         self.next_token = None

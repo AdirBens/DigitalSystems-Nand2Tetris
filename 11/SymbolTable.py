@@ -1,4 +1,5 @@
-# DO NOT TOUCH - PROJECT 11
+from Symbol import Symbol
+
 
 class SymbolTable(object):
     """
@@ -6,9 +7,11 @@ class SymbolTable(object):
     program with identifier properties needed for compilation: type, kind, and running index.
     The symbol table for Jack programs has two nested scopes (class/subroutine).
     """
-
     def __init__(self):
-        pass
+        # self._class_table = dict()
+        self._class_table = dict()
+        self._subroutine_table = None
+        self._counter = {'field': 0, 'local': 0, 'argument': 0, 'static': 0}
 
     def start_subroutine(self) -> None:
         """
@@ -16,19 +19,20 @@ class SymbolTable(object):
         Args: None
         Returns: None
         """
-        pass
+        if self._subroutine_table:
+            self._subroutine_table.clear()
+        else:
+            self._subroutine_table = dict()
+        self._counter.update({'argument': 0, 'local': 0})
 
-    def define(self, name: str, itype: str, kind: str) -> None:
-        """
-        Defines a new identifier of a given name, type, and kind and assigns it a running index.
-        STATIC and FIELD identifiers have a class scope, while ARG and VAR identifiers have a subroutine scope.
-        Args:
-            name (str) -
-            itype (str) -
-            kind (str) - kind value from [STATIC, FIELD, ARG, VAR]
-        Returns: None
-        """
-        pass
+    def add_symbol(self, symbol: Symbol) -> None:
+        symbol.id = self._counter[symbol.kind]
+        self._counter[symbol.kind] += 1
+
+        if symbol.kind in ['argument', 'local']:
+            self._subroutine_table[symbol.name] = symbol
+        else:
+            self._class_table[symbol.name] = symbol
 
     def var_count(self, kind: str) -> int:
         """
@@ -38,7 +42,7 @@ class SymbolTable(object):
         Returns:
             (int)
         """
-        pass
+        return self._counter.get(kind, 0)
 
     def kind_of(self, name: str):  # -> Kind:
         """
@@ -47,7 +51,10 @@ class SymbolTable(object):
         Returns: The kind of the name identifier (STATIC, FIELD, ARG, VAR) in the current scope.
                  If the identifier is unknown in the current scope, returns 'NONE'
         """
-        pass
+        if (symbol := self._subroutine_table.get(name, None)) is not None:
+            return symbol.kind
+        else:
+            return self._class_table.get(name, None).kind
 
     def type_of(self, name: str) -> str:
         """
@@ -55,7 +62,10 @@ class SymbolTable(object):
              name (str) -
         Returns: The type of the named identifier in the current scope.
         """
-        pass
+        if (symbol := self._subroutine_table.get(name, None)) is not None:
+            return symbol.type
+        else:
+            return self._class_table.get(name, None).type
 
     def index_of(self, name: str) -> int:
         """
@@ -63,4 +73,36 @@ class SymbolTable(object):
             name (str) -
         Returns: The index assigned to the named identifier.
         """
-        pass
+        if (symbol := self._subroutine_table.get(name, None)) is not None:
+            return symbol.id
+        else:
+            return self._class_table.get(name, None).id
+
+    def symbol_lookup(self, name: str) -> bool:
+        """
+
+        """
+        if (symbol := self._subroutine_table.get(name, None)) is not None:
+            symbol.reused = True
+        elif (symbol := self._class_table.get(name, None)) is not None:
+            symbol.reused = True
+
+        return symbol.reused
+
+    def close(self):
+        """
+
+        """
+        self._counter.clear()
+        self._class_table.clear()
+        self._subroutine_table = None
+
+
+def main():
+    s = SymbolTable()
+    bol = Symbol('int', 'field')
+    s.add_symbol(bol)
+
+
+if __name__ == "__main__":
+    main()
