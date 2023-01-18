@@ -23,3 +23,5 @@ class Syntax(object):
 
     OP = ["+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "="]
     UNARY = ["-", "~"]
+    SYMBOL_KINDS = ['field', 'static', 'argument', 'local']
+    SYMBOL_TYPES = ['int', 'char', 'boolean', 'void', 'null', ]
