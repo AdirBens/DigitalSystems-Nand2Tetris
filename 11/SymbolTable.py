@@ -42,7 +42,7 @@ class SymbolTable(object):
         Returns:
             (int)
         """
-        return self._counter.get(kind, 0)
+        return self._counter.get(kind, -1)
 
     def kind_of(self, name: str):  # -> Kind:
         """

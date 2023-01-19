@@ -5,7 +5,7 @@ class VMWriter(object):
     Emits VM commands into a file, using the VM command syntax.
     """
 
-    def __init__(self, out: str = None):
+    def __init__(self, out=None):
         """
         Creates a new VMWriter, set out file and prepares it for writing.
         """
@@ -48,14 +48,15 @@ class VMWriter(object):
                "unary": {'~': 'not', '-': 'neg'}}
         self.out_file.write(f'{ops.get(op_type).get(command)}\n')
 
-    def write_label(self, label: str) -> None:
+    def write_label(self, label: str, index: int = -1) -> None:
         """
         Writes a VM 'label' command
         Args:
             label (str) -
         Returns: None
         """
-        self.out_file.write(f'label {label}\n')
+        index = "" if index == -1 else str(index)
+        self.out_file.write(f'label {label}{index}\n')
 
     def write_goto(self, label: str) -> None:
         """
@@ -66,13 +67,15 @@ class VMWriter(object):
         """
         self.out_file.write(f'goto {label}\n')
 
-    def write_if(self, label: str) -> None:
+    def write_if(self, label: str, is_neg: bool = False) -> None:
         """
         Writes a VM 'if' command
         Args:
             label (str) -
         Returns: None
         """
+        if is_neg:
+            self.write_arithmetic("~", op_type='unary')
         self.out_file.write(f'if-goto {label}\n')
 
     def write_call(self, name: str, n_args: int, class_name: str = None) -> None:
