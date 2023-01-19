@@ -203,7 +203,6 @@ class CompilationEngine(object):
             'local' if self.append_node(self.current_token, indent_lvl) == 'var' else None)  # Add Var Kind
         var_symbol.set_type(self.append_node(self.current_token, indent_lvl))                # Add Var Type
         var_symbol.set_name(self.append_node(self.current_token, indent_lvl))                # Add Var Name
-
         self._symbol_table.add_symbol(var_symbol)
         self.append_symbol(var_symbol, indent_lvl)
 
@@ -250,21 +249,32 @@ class CompilationEngine(object):
 
         # SUBROUTINE -
         if self.next_token.token_value in {'.', '('}:
+            n_args = 0
             full_sub_routine_name = None
             #   subroutineName(
             if self.next_token.token_value == '(':
                 full_sub_routine_name = self.current_token.token_value                     # subroutineName
                 self.append_node(self.current_token, indent_lvl)
             #   OR (className | varName).subroutineName(
+
             elif self.next_token.token_value == '.':
-                full_sub_routine_name = self.append_node(self.current_token, indent_lvl)   # (className | varName)
-                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # "."
-                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # subroutineName
+                class_or_var = self.append_node(self.current_token, indent_lvl)  # (className | varName)
+                self.append_node(self.current_token, indent_lvl)                 # "."
+                subroutine_name = self.append_node(self.current_token, indent_lvl)  # subroutineName
+
+                if self._symbol_table.type_of(class_or_var) is not None:
+                    class_or_var = self._symbol_table.type_of(class_or_var)
+                    symbol = Symbol(name='this', symbol_kind='local', symbol_type=class_or_var)
+                    # self._symbol_table.add_symbol(symbol)
+                    self._vmw.write_push(symbol.kind, 0)
+                    n_args += 1
+
+                full_sub_routine_name = f'{class_or_var}.{subroutine_name}'
 
             # (EXPRESSION LIST)
-            self.append_node(self.current_token, indent_lvl)                               # prints "("
-            n_args = self.compile_expression_list(indent_lvl + 1)                          # EXPRESSION LIST
-            self.append_node(self.current_token, indent_lvl)                               # prints ")"
+            self.append_node(self.current_token, indent_lvl)  # prints "("
+            n_args += self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
+            self.append_node(self.current_token, indent_lvl)  # prints ")"
 
             self._vmw.write_call(name=full_sub_routine_name, n_args=n_args)
             self._vmw.write_pop('temp', 0)
@@ -338,7 +348,6 @@ class CompilationEngine(object):
         self.append_tag("<returnStatement>", indent_lvl)
         self.append_node(self.current_token, indent_lvl)
 
-        print(self.current_token.token_value)
         if self.current_token.token_value != ";":
             self.compile_expression(indent_lvl + 1)
 
@@ -426,8 +435,6 @@ class CompilationEngine(object):
             self.compile_term(indent_lvl + 1)                                   # compile term
             self._vmw.write_arithmetic(unary_op, op_type='unary')               # compile unary-op
 
-
-
         elif self.current_token.token_type == "integerConstant":
             self._vmw.write_integerConst(self.current_token.token_value)
             self.append_node(self.current_token, indent_lvl)
@@ -447,6 +454,7 @@ class CompilationEngine(object):
 
         # SUBROUTINE -
         elif self.next_token.token_value in {'.', '('}:
+            n_args = 0
             full_sub_routine_name = None
             #   subroutineName(
             if self.next_token.token_value == '(':
@@ -454,13 +462,23 @@ class CompilationEngine(object):
                 self.append_node(self.current_token, indent_lvl)
             #   OR (className | varName).subroutineName(
             elif self.next_token.token_value == '.':
-                full_sub_routine_name = self.append_node(self.current_token, indent_lvl)  # (className | varName)
-                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # "."
-                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # subroutineName
+
+                class_or_var = self.append_node(self.current_token, indent_lvl)  # (className | varName)
+                self.append_node(self.current_token, indent_lvl)                 # "."
+                subroutine_name = self.append_node(self.current_token, indent_lvl)  # subroutineName
+
+                if self._symbol_table.type_of(class_or_var) is not None:
+                    class_or_var = self._symbol_table.type_of(class_or_var)
+                    symbol = Symbol(name='this', symbol_kind='local', symbol_type=class_or_var)
+                    # self._symbol_table.add_symbol(symbol)
+                    self._vmw.write_push(symbol.kind, 0)
+                    n_args += 1
+
+                full_sub_routine_name = f'{class_or_var}.{subroutine_name}'
 
             # (EXPRESSION LIST)
             self.append_node(self.current_token, indent_lvl)  # prints "("
-            n_args = self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
+            n_args += self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
             self.append_node(self.current_token, indent_lvl)  # prints ")"
 
             self._vmw.write_call(name=full_sub_routine_name, n_args=n_args)

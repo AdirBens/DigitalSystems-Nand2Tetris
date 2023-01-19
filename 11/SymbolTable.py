@@ -64,8 +64,11 @@ class SymbolTable(object):
         """
         if (symbol := self._subroutine_table.get(name, None)) is not None:
             return symbol.type
+        elif (symbol := self._subroutine_table.get(name, None)) is not None:
+            return symbol.type
         else:
-            return self._class_table.get(name, None).type
+            return None
+
 
     def index_of(self, name: str) -> int:
         """
