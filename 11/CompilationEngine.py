@@ -5,6 +5,7 @@ from Symbol import Symbol
 from SymbolTable import SymbolTable
 from Syntax import Syntax
 from Token import Token
+from VMWriter import VMWriter
 
 
 class CompilationEngine(object):
@@ -20,6 +21,7 @@ class CompilationEngine(object):
 
     _output_file = None
     _tokenizer = None
+    _vmw = None
     _symbol_table = None
     _current_class = None
     current_token = None
@@ -34,12 +36,15 @@ class CompilationEngine(object):
         Returns: CompilationEngine object
         """
         self._tokenizer = tokenizer
+        self._vmw = VMWriter()
         self._debug = debug
 
     def set_out_file(self, prog_path: pathlib.Path):
         self.close()
-        out_path = prog_path.with_suffix(".xml_debug") if self._debug else prog_path.with_suffix(".xml")
+        # out_path = prog_path.with_suffix(".xml_debug") if self._debug else prog_path.with_suffix(".xml")
+        out_path = prog_path.with_suffix(".debug.vm") if self._debug else prog_path.with_suffix(".vm")
         self._output_file = open(out_path, 'w')
+        self._vmw.set_outfile(self._output_file)
 
     def advance(self) -> None:
         """
@@ -117,18 +122,23 @@ class CompilationEngine(object):
         """
         self.append_tag("<subroutineDec>", indent_lvl)
         self._symbol_table.start_subroutine()
+
         if self.current_token.token_value == "method":
             this_symbol = Symbol(name="this", symbol_type=self._current_class, symbol_kind="argument")
             self._symbol_table.add_symbol(this_symbol)
             self.append_symbol(this_symbol, indent_lvl)
 
-        while self.current_token.token_value != "(":
-            self.append_node(self.current_token, indent_lvl)
+        self.append_node(self.current_token, indent_lvl)                      # prints (method | constructor | function)
+        self.append_node(self.current_token, indent_lvl)                      # prints (void | type)
+        subroutine_name = self.append_node(self.current_token, indent_lvl)    # prints subroutine name
+
         # PARAMETER LIST
         self.append_node(self.current_token, indent_lvl)  # prints "("
         self.compile_parameter_list(indent_lvl + 1)
         self.append_node(self.current_token, indent_lvl)  # prints ")"
-
+        # Compile 'function <subroutine_full_name> <number of arguments>
+        self._vmw.write_function(name=subroutine_name, class_name=self._current_class,
+                                 l_locals=self._symbol_table.var_count("argument"))
         # SUBROUTINE BODY
         self.compile_subroutine_body(indent_lvl + 1)
         self.append_tag("</subroutineDec>", indent_lvl)
@@ -226,19 +236,28 @@ class CompilationEngine(object):
         """
         self.append_tag("<doStatement>", indent_lvl)
         self.append_node(self.current_token, indent_lvl)  # prints 'do'
-        self.append_node(self.current_token, indent_lvl)  # prints (className | varName) | subroutineName
 
-        if self.current_token.token_value == ".":
-            self.append_node(self.current_token, indent_lvl)  # prints "."
-            self.append_node(self.current_token, indent_lvl)  # prints `subroutineName`
+        # SUBROUTINE -
+        if self.next_token.token_value in {'.', '('}:
+            full_sub_routine_name = None
+            #   subroutineName(
+            if self.next_token.token_value == '(':
+                full_sub_routine_name = self.current_token.token_value  # subroutineName
+                self.append_node(self.current_token, indent_lvl)
+            #   OR (className | varName).subroutineName(
+            elif self.next_token.token_value == '.':
+                full_sub_routine_name = self.append_node(self.current_token, indent_lvl)   # (className | varName)
+                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # "."
+                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # subroutineName
 
-        # EXPRESSION LIST
-        self.append_node(self.current_token, indent_lvl)  # prints "("
-        self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
-        self.append_node(self.current_token, indent_lvl)  # prints ")"
+            # (EXPRESSION LIST)
+            self.append_node(self.current_token, indent_lvl)  # prints "("
+            n_args = self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
+            self.append_node(self.current_token, indent_lvl)  # prints ")"
+
+            self._vmw.write_call(name=full_sub_routine_name, n_args=n_args)
 
         self.append_node(self.current_token, indent_lvl)  # prints `;`
-
         self.append_tag("</doStatement>", indent_lvl)
 
     def compile_let(self, indent_lvl: int = 0) -> None:
@@ -293,6 +312,12 @@ class CompilationEngine(object):
         if self.current_token.token_value != ";":
             self.compile_expression(indent_lvl + 1)
 
+        else:
+            self._vmw.write_pop("temp", 0)
+            self._vmw.write_push("constant", 0)
+
+        self._vmw.write_return()
+
         self.append_node(self.current_token, indent_lvl)
         self.append_tag("</returnStatement>", indent_lvl)
 
@@ -336,8 +361,11 @@ class CompilationEngine(object):
 
         # (OP TERM)*
         while self.current_token.token_value in Syntax.OP:
-            self.append_node(self.current_token, indent_lvl)
-            self.compile_term(indent_lvl + 1)
+            op = self.current_token.token_value
+            self.append_node(self.current_token, indent_lvl)        # advances to term
+            self.compile_term(indent_lvl + 1)                       # compiles term
+            self._vmw.write_arithmetic(op)                          # writes arith op
+
 
         self.append_tag("</expression>", indent_lvl)
 
@@ -355,53 +383,92 @@ class CompilationEngine(object):
 
         # if (EXPRESSION)
         if self.current_token.token_value == '(':
-            self.append_node(self.current_token, indent_lvl)
-            self.compile_expression(indent_lvl + 1)
-            self.append_node(self.current_token, indent_lvl)
+            self.append_node(self.current_token, indent_lvl)                # prints "("
+            self.compile_expression(indent_lvl + 1)                         # compile expression
+            self.append_node(self.current_token, indent_lvl)                # prints ")"
 
         # if unaryOp term
         elif self.current_token.token_value in {'-', '~'}:
+            unary_op = self.current_token.token_value
+            self.compile_term(indent_lvl + 1)                               # compile term
+            self._vmw.write_arithmetic(unary_op, op_type='unary')           # compile unary-op
+            self.append_node(self.current_token, indent_lvl)                # prints unary-op
+
+        elif self.current_token.token_type == "integerConstant":
+            self._vmw.write_integerConst(self.current_token.token_value)
             self.append_node(self.current_token, indent_lvl)
-            self.compile_term(indent_lvl + 1)
 
-        else:
-            # prints first token in line
+        elif self.current_token.token_type == "stringConstant":
+            self._vmw.write_string(self.current_token.token_value)
             self.append_node(self.current_token, indent_lvl)
 
-            # if subroutineCall
-            if self.current_token.token_value in {'(', '.'}:
-                if self.current_token.token_value == ".":
-                    self.append_node(self.current_token, indent_lvl)  # prints "."
-                    self.append_node(self.current_token, indent_lvl)  # prints `subroutineName`
+        elif self.current_token.token_type == "keyword":
+            if self.current_token.token_value == "this":
+                self._vmw.write_push('pointer', 0)                                           # compile this
+            elif self.current_token.token_value in {'null', 'false', 'true'}:
+                self._vmw.write_integerConst(1 if self.current_token.token_value == 'true' else 0)  # compile null, false, true
+            self.append_node(self.current_token, indent_lvl)
 
-                # (EXPRESSION LIST)
-                self.append_node(self.current_token, indent_lvl)  # prints "("
-                self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
-                self.append_node(self.current_token, indent_lvl)  # prints ")"
+        # SUBROUTINE -
+        elif self.next_token.token_value in {'.', '('}:
+            full_sub_routine_name = None
+            #   subroutineName(
+            if self.next_token.token_value == '(':
+                full_sub_routine_name = self.current_token.token_value                       # subroutineName
+                self.append_node(self.current_token, indent_lvl)
+            #   OR (className | varName).subroutineName(
+            elif self.next_token.token_value == '.':
+                full_sub_routine_name = self.append_node(self.current_token, indent_lvl)     # (className | varName)
+                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)    # "."
+                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)    # subroutineName
 
-            # [EXPRESSION]
-            elif self.current_token.token_value == '[':
-                # EXPRESSION
-                self.append_node(self.current_token, indent_lvl)  # prints "["
-                self.compile_expression(indent_lvl + 1)  # EXPRESSION
-                self.append_node(self.current_token, indent_lvl)  # prints "]"
+            # (EXPRESSION LIST)
+            self.append_node(self.current_token, indent_lvl)                                 # prints "("
+            n_args = self.compile_expression_list(indent_lvl + 1)                            # EXPRESSION LIST
+            self.append_node(self.current_token, indent_lvl)                                 # prints ")"
+
+            self._vmw.write_call(name=full_sub_routine_name, n_args=n_args)
+
+        # Array
+        elif self.next_token.token_value == '[':
+            var_name = self.append_node(self.current_token, indent_lvl)                     # var_name
+            kind = self._symbol_table.kind_of(var_name)
+            index = self._symbol_table.index_of(var_name)
+
+            # EXPRESSION                                                     # push desire Array index
+            self.append_node(self.current_token, indent_lvl)                 # prints "["
+            self.compile_expression(indent_lvl + 1)                          # EXPRESSION
+            self.append_node(self.current_token, indent_lvl)                 # prints "]"
+
+            self._vmw.write_push(kind, index)                                # push index of Array head
+            self._vmw.write_arithmetic("+")                                  # push the absolut memory index
+
+        else:   # varName - Must be a Symbol at this stage.
+            var_name = self.append_node(self.current_token, indent_lvl)                     # var_name
+            kind = self._symbol_table.kind_of(var_name)
+            index = self._symbol_table.index_of(var_name)
+            self._vmw.write_push(kind, index)
 
         self.append_tag("</term>", indent_lvl)
 
-    def compile_expression_list(self, indent_lvl: int = 0) -> None:
+    def compile_expression_list(self, indent_lvl: int = 0) -> int:
         """
         Compiles a (possibly empty) comma-separated list of expressions.
-        Returns: None
+        Returns: number of expressions
         """
         self.append_tag("<expressionList>", indent_lvl)
+        n_expression = 0
 
         if self.current_token.token_value != ')':  # checks if the expressionList is closed
             self.compile_expression(indent_lvl + 1)
+            n_expression += 1
             while self.current_token.token_value == ',':
                 self.append_node(self.current_token, indent_lvl)  # prints ','
                 self.compile_expression(indent_lvl + 1)
+                n_expression += 1
 
         self.append_tag("</expressionList>", indent_lvl)
+        return n_expression
 
     def append_node(self, token: Token, indent_lvl: int = 0, advance: bool = True) -> Token.token_value:
         """
@@ -415,7 +482,7 @@ class CompilationEngine(object):
         """
         token_value = None
         if token:
-            self._output_file.write('\t' * indent_lvl + token.__str__() + "\n")
+            # self._output_file.write('\t' * indent_lvl + token.__str__() + "\n")
             token_value = self.current_token.token_value
             self.advance()
         return token_value
@@ -430,11 +497,15 @@ class CompilationEngine(object):
         Returns: (bool) true if new xml node append successfully,
                         false in case of the given token is None
         """
-        if symbol:
+        if symbol == "KOOOSHI":
             self._output_file.write('\t' * indent_lvl + symbol.__repr__() + "\n")
 
     def append_tag(self, tag: str, indent_lvl: int = 0):
-        self._output_file.write((indent_lvl - 1) * "\t" + tag + "\n")
+        if "Kooshi" == "TRAVOR":
+            self._output_file.write((indent_lvl - 1) * "\t" + tag + "\n")
+
+    def compile_subroutine(self):
+        pass
 
     def close(self) -> None:
         """
