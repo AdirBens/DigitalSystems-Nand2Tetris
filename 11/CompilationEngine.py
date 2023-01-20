@@ -150,7 +150,7 @@ class CompilationEngine(object):
         self.compile_subroutine_body(subroutine_name, indent_lvl + 1)
         self.append_tag("</subroutineDec>", indent_lvl)
 
-    def compile_subroutine_body(self,subroutine_name: str, indent_lvl: int = 0) -> None:
+    def compile_subroutine_body(self, subroutine_name: str, indent_lvl: int = 0) -> None:
         self.append_tag("<subroutineBody>", indent_lvl)
 
         self.append_node(self.current_token, indent_lvl)  # print "{"
@@ -161,9 +161,8 @@ class CompilationEngine(object):
 
         # Compile 'function <subroutine_full_name> <number of arguments>
         self._vmw.write_function(name=subroutine_name, class_name=self._current_class,
-                                 l_locals=
+                                 l_locals= self._symbol_table.var_count("local"))
                                  # self._symbol_table.var_count("argument") +
-                                          self._symbol_table.var_count("local"))
 
         while self.current_token.token_value != "}":
             # STATEMENTS
@@ -250,24 +249,8 @@ class CompilationEngine(object):
 
         # SUBROUTINE -
         if self.next_token.token_value in {'.', '('}:
-            full_sub_routine_name = None
-            #   subroutineName(
-            if self.next_token.token_value == '(':
-                full_sub_routine_name = self.current_token.token_value                     # subroutineName
-                self.append_node(self.current_token, indent_lvl)
-            #   OR (className | varName).subroutineName(
-            elif self.next_token.token_value == '.':
-                full_sub_routine_name = self.append_node(self.current_token, indent_lvl)   # (className | varName)
-                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # "."
-                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # subroutineName
-
-            # (EXPRESSION LIST)
-            self.append_node(self.current_token, indent_lvl)                               # prints "("
-            n_args = self.compile_expression_list(indent_lvl + 1)                          # EXPRESSION LIST
-            self.append_node(self.current_token, indent_lvl)                               # prints ")"
-
-            self._vmw.write_call(name=full_sub_routine_name, n_args=n_args)
-            self._vmw.write_pop('temp', 0)
+            pass
+            self.compile_subroutine(indent_lvl)
         self.append_node(self.current_token, indent_lvl)                                   # prints `;`
         self.append_tag("</doStatement>", indent_lvl)
 
@@ -426,8 +409,6 @@ class CompilationEngine(object):
             self.compile_term(indent_lvl + 1)                                   # compile term
             self._vmw.write_arithmetic(unary_op, op_type='unary')               # compile unary-op
 
-
-
         elif self.current_token.token_type == "integerConstant":
             self._vmw.write_integerConst(self.current_token.token_value)
             self.append_node(self.current_token, indent_lvl)
@@ -447,23 +428,7 @@ class CompilationEngine(object):
 
         # SUBROUTINE -
         elif self.next_token.token_value in {'.', '('}:
-            full_sub_routine_name = None
-            #   subroutineName(
-            if self.next_token.token_value == '(':
-                full_sub_routine_name = self.current_token.token_value  # subroutineName
-                self.append_node(self.current_token, indent_lvl)
-            #   OR (className | varName).subroutineName(
-            elif self.next_token.token_value == '.':
-                full_sub_routine_name = self.append_node(self.current_token, indent_lvl)  # (className | varName)
-                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # "."
-                full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # subroutineName
-
-            # (EXPRESSION LIST)
-            self.append_node(self.current_token, indent_lvl)  # prints "("
-            n_args = self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
-            self.append_node(self.current_token, indent_lvl)  # prints ")"
-
-            self._vmw.write_call(name=full_sub_routine_name, n_args=n_args)
+            self.compile_subroutine(indent_lvl)
 
         # Array
         elif self.next_token.token_value == '[':
@@ -486,6 +451,32 @@ class CompilationEngine(object):
             self._vmw.write_push(kind, index)
 
         self.append_tag("</term>", indent_lvl)
+
+    def compile_subroutine(self, indent_lvl: int = 0) -> int:
+        """
+
+        """
+        full_sub_routine_name = None
+        #   subroutineName(
+        if self.next_token.token_value == '(':
+            full_sub_routine_name = self.current_token.token_value  # subroutineName
+            self.append_node(self.current_token, indent_lvl)
+
+        #   OR (className | varName).subroutineName(
+        elif self.next_token.token_value == '.':
+            full_sub_routine_name = self.append_node(self.current_token, indent_lvl)  # (className | varName)
+            full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # "."
+            full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # subroutineName
+
+        # (EXPRESSION LIST)
+        self.append_node(self.current_token, indent_lvl)  # prints "("
+        n_args = self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
+        self.append_node(self.current_token, indent_lvl)  # prints ")"
+
+        self._vmw.write_call(name=full_sub_routine_name, n_args=n_args)
+        self._vmw.write_pop('temp', 0)
+
+        return n_args
 
     def compile_expression_list(self, indent_lvl: int = 0) -> int:
         """
@@ -539,9 +530,6 @@ class CompilationEngine(object):
     def append_tag(self, tag: str, indent_lvl: int = 0):
         if "Kooshi" == "TRAVOR":
             self._output_file.write((indent_lvl - 1) * "\t" + tag + "\n")
-
-    def compile_subroutine(self):
-        pass
 
     def get_label_counter(self):
         """
