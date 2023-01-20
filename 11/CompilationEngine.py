@@ -124,22 +124,14 @@ class CompilationEngine(object):
         self.append_tag("<subroutineDec>", indent_lvl)
         self._symbol_table.start_subroutine()
 
-        if self.current_token.token_value == "constructor":
-            self._vmw.write_push('constant', self._symbol_table.var_count('field'))
-            self._vmw.write_call(class_name='Memory', name='alloc', n_args=1)
-            self._vmw.write_pop('pointer', 0)
+        subroutine_type = self.append_node(self.current_token, indent_lvl)  # prints (method | constructor | function)
+        subroutine_return_type = self.append_node(self.current_token, indent_lvl)  # prints (void | type)
+        subroutine_name = self.append_node(self.current_token, indent_lvl)  # prints subroutine name
 
-        if self.current_token.token_value == "method":
-            self._vmw.write_push('argument', 0)
-            self._vmw.write_pop('pointer', 0)
-
+        if subroutine_type == "method":
             this_symbol = Symbol(name="this", symbol_type=self._current_class, symbol_kind="argument")
             self._symbol_table.add_symbol(this_symbol)
             self.append_symbol(this_symbol, indent_lvl)
-
-        self.append_node(self.current_token, indent_lvl)  # prints (method | constructor | function)
-        self.append_node(self.current_token, indent_lvl)  # prints (void | type)
-        subroutine_name = self.append_node(self.current_token, indent_lvl)  # prints subroutine name
 
         # PARAMETER LIST
         self.append_node(self.current_token, indent_lvl)  # prints "("
@@ -147,10 +139,10 @@ class CompilationEngine(object):
         self.append_node(self.current_token, indent_lvl)  # prints ")"
 
         # SUBROUTINE BODY
-        self.compile_subroutine_body(subroutine_name, indent_lvl + 1)
+        self.compile_subroutine_body(subroutine_name, subroutine_type, indent_lvl + 1)
         self.append_tag("</subroutineDec>", indent_lvl)
 
-    def compile_subroutine_body(self, subroutine_name: str, indent_lvl: int = 0) -> None:
+    def compile_subroutine_body(self, subroutine_name: str, subroutine_type: str, indent_lvl: int = 0) -> None:
         self.append_tag("<subroutineBody>", indent_lvl)
 
         self.append_node(self.current_token, indent_lvl)  # print "{"
@@ -162,7 +154,15 @@ class CompilationEngine(object):
         # Compile 'function <subroutine_full_name> <number of arguments>
         self._vmw.write_function(name=subroutine_name, class_name=self._current_class,
                                  l_locals= self._symbol_table.var_count("local"))
-                                 # self._symbol_table.var_count("argument") +
+
+        if subroutine_type == "constructor":
+            self._vmw.write_push('constant', self._symbol_table.var_count('field'))
+            self._vmw.write_call(class_name='Memory', name='alloc', n_args=1)
+            self._vmw.write_pop('pointer', 0)
+
+        if subroutine_type == "method":
+            self._vmw.write_push('argument', 0)
+            self._vmw.write_pop('pointer', 0)
 
         while self.current_token.token_value != "}":
             # STATEMENTS
@@ -245,12 +245,11 @@ class CompilationEngine(object):
         Actually implements subroutineCall
         """
         self.append_tag("<doStatement>", indent_lvl)
-        self.append_node(self.current_token, indent_lvl)  # prints 'do'
+        self.append_node(self.current_token, indent_lvl)                                   # prints 'do'
 
         # SUBROUTINE -
-        if self.next_token.token_value in {'.', '('}:
-            pass
-            self.compile_subroutine(indent_lvl)
+        self.compile_subroutine_call(indent_lvl)
+        self._vmw.write_pop('temp', 0)                                                     # clears garbage
         self.append_node(self.current_token, indent_lvl)                                   # prints `;`
         self.append_tag("</doStatement>", indent_lvl)
 
@@ -321,7 +320,6 @@ class CompilationEngine(object):
         self.append_tag("<returnStatement>", indent_lvl)
         self.append_node(self.current_token, indent_lvl)
 
-        print(self.current_token.token_value)
         if self.current_token.token_value != ";":
             self.compile_expression(indent_lvl + 1)
 
@@ -397,13 +395,13 @@ class CompilationEngine(object):
         """
         self.append_tag("<term>", indent_lvl)
 
-        # if (EXPRESSION)
+        # (EXPRESSION)
         if self.current_token.token_value == '(':
             self.append_node(self.current_token, indent_lvl)  # prints "("
             self.compile_expression(indent_lvl + 1)  # compile expression
             self.append_node(self.current_token, indent_lvl)  # prints ")"
 
-        # if unaryOp term
+        # unaryOp term
         elif self.current_token.token_value in {'-', '~'}:
             unary_op = self.append_node(self.current_token, indent_lvl)         # prints unary-op
             self.compile_term(indent_lvl + 1)                                   # compile term
@@ -417,6 +415,10 @@ class CompilationEngine(object):
             self._vmw.write_string(self.current_token.token_value)
             self.append_node(self.current_token, indent_lvl)
 
+        # SUBROUTINE -
+        elif self.next_token.token_value in {'.', '('}:
+            self.compile_subroutine_call(indent_lvl)
+
         elif self.current_token.token_type == "keyword":
             if self.current_token.token_value == "this":
                 self._vmw.write_push('pointer', 0)  # compile this
@@ -426,9 +428,6 @@ class CompilationEngine(object):
                     self._vmw.write_arithmetic('~', op_type='unary')
             self.append_node(self.current_token, indent_lvl)
 
-        # SUBROUTINE -
-        elif self.next_token.token_value in {'.', '('}:
-            self.compile_subroutine(indent_lvl)
 
         # Array
         elif self.next_token.token_value == '[':
@@ -443,6 +442,8 @@ class CompilationEngine(object):
 
             self._vmw.write_push(kind, index)  # push index of Array head
             self._vmw.write_arithmetic("+")  # push the absolut memory index
+            self._vmw.write_pop('pointer', 1)
+            self._vmw.write_push('that', 0)
 
         else:  # varName - Must be a Symbol at this stage.
             var_name = self.append_node(self.current_token, indent_lvl)  # var_name
@@ -452,30 +453,43 @@ class CompilationEngine(object):
 
         self.append_tag("</term>", indent_lvl)
 
-    def compile_subroutine(self, indent_lvl: int = 0) -> int:
+    def compile_subroutine_call(self, indent_lvl: int = 0) -> int:
         """
 
         """
-        full_sub_routine_name = None
-        #   subroutineName(
-        if self.next_token.token_value == '(':
-            full_sub_routine_name = self.current_token.token_value  # subroutineName
-            self.append_node(self.current_token, indent_lvl)
+        func_name = self.current_token.token_value
+        class_name = self._current_class
+        is_method = True
+        n_args = 0
 
         #   OR (className | varName).subroutineName(
-        elif self.next_token.token_value == '.':
-            full_sub_routine_name = self.append_node(self.current_token, indent_lvl)  # (className | varName)
-            full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # "."
-            full_sub_routine_name += self.append_node(self.current_token, indent_lvl)  # subroutineName
+        if self.next_token.token_value == '.':
+            is_method = False
+            # Need to check if the current token is a name of a sym
+            class_name = self.current_token.token_value
+            func_obj = self._symbol_table.get_symbol(self.append_node(self.current_token, indent_lvl))    # (className | varName)
+            self.append_node(self.current_token, indent_lvl)                                              # "."
+            func_name = self.current_token.token_value
+            if func_obj:
+                kind_of = self._symbol_table.kind_of(class_name)
+                index_of = self._symbol_table.index_of(class_name)
+                class_name = self._symbol_table.type_of(class_name)
+                n_args = 1
+                self._vmw.write_push(kind_of, index_of)
 
-        # (EXPRESSION LIST)
-        self.append_node(self.current_token, indent_lvl)  # prints "("
-        n_args = self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
-        self.append_node(self.current_token, indent_lvl)  # prints ")"
+        #   subroutineName(
+        if self.next_token.token_value == '(':
+            self.append_node(self.current_token, indent_lvl)                                              # "("
+            if is_method:
+                n_args = 1
+                self._vmw.write_push('pointer', 0)
 
-        self._vmw.write_call(name=full_sub_routine_name, n_args=n_args)
-        self._vmw.write_pop('temp', 0)
-
+            # (EXPRESSION LIST)
+            self.append_node(self.current_token, indent_lvl)  # prints "("
+            n_args += self.compile_expression_list(indent_lvl + 1)  # EXPRESSION LIST
+            full_sub_routine_name = f'{class_name}.{func_name}'
+            self._vmw.write_call(name=full_sub_routine_name, n_args=n_args)
+            self.append_node(self.current_token, indent_lvl)  # prints ")"
         return n_args
 
     def compile_expression_list(self, indent_lvl: int = 0) -> int:

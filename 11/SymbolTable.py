@@ -34,6 +34,17 @@ class SymbolTable(object):
         else:
             self._class_table[symbol.name] = symbol
 
+    def get_symbol(self, name: str):  # -> Symbol:
+        """
+        Args:
+             name (str) -
+        Returns: 
+        """
+        if (symbol := self._subroutine_table.get(name, None)) is not None:
+            return symbol
+        elif (symbol := self._class_table.get(name, None)) is not None:
+            return symbol
+
     def var_count(self, kind: str) -> int:
         """
         Returns the number of variables of the given kind already defined in the current scope.
@@ -53,10 +64,11 @@ class SymbolTable(object):
         """
         if (symbol := self._subroutine_table.get(name, None)) is not None:
             return symbol.kind
-        else:
-            return self._class_table.get(name, None).kind
+        elif (symbol := self._class_table.get(name, None)) is not None:
+            return symbol.kind
+        # return None
 
-    def type_of(self, name: str) -> str:
+    def type_of(self, name: str):  # -> str:
         """
         Args:
              name (str) -
@@ -64,10 +76,11 @@ class SymbolTable(object):
         """
         if (symbol := self._subroutine_table.get(name, None)) is not None:
             return symbol.type
-        else:
-            return self._class_table.get(name, None).type
+        elif (symbol := self._class_table.get(name, None)) is not None:
+            return symbol.type
+        return None
 
-    def index_of(self, name: str) -> int:
+    def index_of(self, name: str):  # -> int:
         """
         Args:
             name (str) -
@@ -75,8 +88,9 @@ class SymbolTable(object):
         """
         if (symbol := self._subroutine_table.get(name, None)) is not None:
             return symbol.id
-        else:
-            return self._class_table.get(name, None).id
+        elif (symbol := self._class_table.get(name, None)) is not None:
+            return symbol.id
+        return None
 
     def symbol_lookup(self, name: str) -> bool:
         """
@@ -86,7 +100,6 @@ class SymbolTable(object):
             symbol.reused = True
         elif (symbol := self._class_table.get(name, None)) is not None:
             symbol.reused = True
-
         return symbol.reused
 
     def close(self):

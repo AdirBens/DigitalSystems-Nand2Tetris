@@ -53,6 +53,7 @@ class JackTokenizer(object):
 
         for terminal, matcher in Syntax.TERMINALS.items():
             if token := matcher.match(buffer):
+
                 token_value = token.group(0)
                 if terminal != "inlineComment":
                     self._current_token = Token(token_type=terminal, token_value=token_value)
