@@ -21,8 +21,7 @@ class JackTokenizer(object):
     def set_input_file(self, input_path) -> None:
         """
         Open input file and Sets it as JackTokenizer's input_file
-        Args:
-            input_path (.jack program path as string or as a pathlib.Path object)
+        Args: input_path (.jack program path as string or as a pathlib.Path object)
         """
         if self.file_iterator:
             self.close()

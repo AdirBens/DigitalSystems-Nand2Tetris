@@ -29,7 +29,7 @@ class Token(object):
 
     def __str__(self):
         """
-        Returns: This token's represents as a XML node
+        Returns: This token's represents as an XML node
         """
         return f"<{self.token_type}> {self.token_value} </{self.token_type}>"
 

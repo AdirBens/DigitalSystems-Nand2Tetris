@@ -9,13 +9,12 @@ class JackAnalyzer(object):
     """
     Top-level driver that sets up and invokes the other modules;
     """
-    _input_files = None
-    _output_file = None
-
     def __init__(self, input_path: str):
+        self._input_files = None
+        self._output_file = None
         self._set_io_files(input_path)
         self.tokenizer = JackTokenizer()
-        self.engine = CompilationEngine(output=self._output_file, tokenizer=self.tokenizer)
+        self.engine = CompilationEngine(tokenizer=self.tokenizer, debug=True)
 
     def close(self) -> None:
         """
@@ -26,6 +25,8 @@ class JackAnalyzer(object):
 
     def analyze_code(self) -> None:
         """
+        Orchestrate JackSyntax Analysis compilation session
+        By invoking JackTokenizer & CompileEngine services
         """
         for prog in self._input_files:
             self.tokenizer.set_input_file(prog)
@@ -38,9 +39,7 @@ class JackAnalyzer(object):
         """
         Validate that given input-path is either a single .jack file, Or directory contains one or more .jack files,
         and assign theme to the INPUT_FILES
-        Args:
-            path (str) - input program path
-        Returns: None
+        Args: path (str) - input program path
         Raises: InvalidInputFileError if the path is not valid
         """
         path = pathlib.Path(path)

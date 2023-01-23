@@ -10,9 +10,9 @@ class Syntax(object):
 
         'symbol': re.compile("{|}|[(]|[)]|\\[|\\]|[|]|[.]|,|[;]|\\+|-|\\*|/|&|\\||<|>|=|~"),
 
-        'keyword': re.compile("class|constructor|function|method|field|static|var"
+        'keyword': re.compile("(class|constructor|function|method|field|static|var"
                               "|int|char|boolean|void|true|false|null|"
-                              "this|let|do|if|else|return|while(?=\\W)"),
+                              "this|let|do|if|else|return|while)(?=\\W)"),
 
         'integerConstant': re.compile("^[0-9]+"),
 
