@@ -17,12 +17,13 @@ class CompilationEngine(object):
     the input, advance() the tokenizer exactly beyond xxx, and output the parsing of xxx.
     Thus, compilexxx() may only be called if indeed xxx is the next syntactic element of the input.
     """
+
     def __init__(self, tokenizer: JackTokenizer, debug: bool = False):
         """
         Creates a new compilation engine with the given input and output.
         The next routine called must be compileClass().
-        Args: output (Path) - Path to where output file should be created
-              debug (bool)  - create debug file, do not override cmp files
+        Args: tokenizer (JackTokenizer) - JackTokenizer object encapsulate input file
+                  debug (bool)  - create debug file, do not override cmp files
         Returns: CompilationEngine object
         """
         self.debug = debug
@@ -43,12 +44,11 @@ class CompilationEngine(object):
             Also sets the VMWriter out file to be as the new Engin's out-file
         Args: program_path (Path) - path of the current compiled .jack file
         """
-        # self.close()
         new_outfile = program_path.with_suffix(".debug.vm") if self.debug else program_path.with_suffix(".vm")
         self._out_file = open(new_outfile, 'w')
         self._vmw.set_outfile(self._out_file)
 
-    def advance(self, skips = 1):
+    def advance(self, skips=1):
         """
         Handles current_token and next_token reading by invoke JackTokenizer.advance()
         Args: [OPTIONAL] skips (int) - number of tokens to skip, after skipping, the current_token sets to be the
@@ -73,7 +73,7 @@ class CompilationEngine(object):
         Compile a Complete class - in particular, compile .jack file
         """
         self._symbol_table = SymbolTable()
-        self._current_class = self.advance(skips=3)[1]       # Skips 'class', get current class name and skips '{'
+        self._current_class = self.advance(skips=3)[1]  # Skips 'class', get current class name and skips '{'
 
         while self.current_token.token_value in {'static', 'field'}:
             self.compile_var_dec(force_kind=False)
@@ -83,7 +83,7 @@ class CompilationEngine(object):
 
         self.advance()  # Skips '}'
 
-    def compile_var_dec(self, force_kind = True) -> None:
+    def compile_var_dec(self, force_kind=True) -> None:
         """
         Compiles a static declaration or a field declaration.
         Args: [OPTIONAL] force_kind (bool; default = True) - Useful in general var declaration
@@ -102,7 +102,7 @@ class CompilationEngine(object):
                 self._symbol_table.add_symbol(var_symbol)
             else:
                 self.advance()  # Skips ','
-        self.advance()          # Skips ';'
+        self.advance()  # Skips ';'
 
     def compile_subroutine_dec(self) -> None:
         """
@@ -117,9 +117,9 @@ class CompilationEngine(object):
             self._symbol_table.add_symbol(this_symbol)
 
         # (PARAMETER LIST)
-        self.advance()                      # Skips '('
-        self.compile_parameter_list()       # PARAMETER LIST
-        self.advance()                      # Skips ')'
+        self.advance()  # Skips '('
+        self.compile_parameter_list()  # PARAMETER LIST
+        self.advance()  # Skips ')'
         # SUBROUTINE BODY
         self.compile_subroutine_body(subroutine_name, subroutine_kind)
 
@@ -143,13 +143,13 @@ class CompilationEngine(object):
         """
         self.advance()  # Skips '{'
 
-        while self.current_token.token_value == "var":      # VAR DEC
+        while self.current_token.token_value == "var":  # VAR DEC
             self.compile_var_dec()
 
         # Compile 'function <subroutine_full_name> <number of arguments>
         self._vmw.write_function(name=subroutine_name, class_name=self._current_class,
                                  l_locals=self._symbol_table.var_count("local"))
-        if subroutine_kind == "constructor":    # Memory Allocation and initialize new object
+        if subroutine_kind == "constructor":  # Memory Allocation and initialize new object
             self._vmw.write_push(segment='constant', index=self._symbol_table.var_count("field"))
             self._vmw.write_call(name='alloc', class_name='Memory', n_args=1)
             self._vmw.write_pop(segment='pointer', index=0)
@@ -157,7 +157,7 @@ class CompilationEngine(object):
             self._vmw.write_push(segment='argument', index=0)
             self._vmw.write_pop(segment='pointer', index=0)
 
-        while self.current_token.token_value != '}':    # STATEMENTS
+        while self.current_token.token_value != '}':  # STATEMENTS
             self.compile_statements()
 
         self.advance()  # Skips '}'
@@ -182,13 +182,13 @@ class CompilationEngine(object):
         """
         Compiles a 'let' statement
         """
-        var_name = self.advance(skips=2)[1]   # Reads 'let varName'
+        var_name = self.advance(skips=2)[1]  # Reads 'let varName'
 
         #  ARRAY[EXPRESSION] = EXPRESSION
         if self.current_token.token_value == '[':
-            self.advance()                      # Skips '['
-            self.compile_expression()           # EXPRESSION
-            self.advance(skips=2)               # Skips '] = '
+            self.advance()  # Skips '['
+            self.compile_expression()  # EXPRESSION
+            self.advance(skips=2)  # Skips '] = '
             # Set Pointer to ARRAY[INDEX]
             self._vmw.write_push(segment=self._symbol_table.kind_of(var_name),
                                  index=self._symbol_table.index_of(var_name))
@@ -196,14 +196,14 @@ class CompilationEngine(object):
             # Eval the assigned EXPRESSION
             self.compile_expression()
             # Assignment of Array[index] = EXPRESSION
-            self._vmw.write_pop(segment='temp', index=0)     # >> Stores Assigned EXPRESSION Value in 'temp'
+            self._vmw.write_pop(segment='temp', index=0)  # >> Stores Assigned EXPRESSION Value in 'temp'
             self._vmw.write_pop(segment='pointer', index=1)  # >> Set Pointer to point that
-            self._vmw.write_push(segment='temp', index=0)    # << Get Assigned EXPRESSION Value from 'temp'
-            self._vmw.write_pop(segment='that', index=0)     # >> Assigning (stores) The value to the Array[index]
+            self._vmw.write_push(segment='temp', index=0)  # << Get Assigned EXPRESSION Value from 'temp'
+            self._vmw.write_pop(segment='that', index=0)  # >> Assigning (stores) The value to the Array[index]
         # VAR = EXPRESSION
         else:
-            self.advance()              # Skips '='
-            self.compile_expression()   # EXPRESSION
+            self.advance()  # Skips '='
+            self.compile_expression()  # EXPRESSION
             self._vmw.write_pop(segment=self._symbol_table.kind_of(var_name),
                                 index=self._symbol_table.index_of(var_name))
         self.advance()  # Skips ';'
@@ -212,30 +212,30 @@ class CompilationEngine(object):
         """
         Compiles a 'do' statement (Actually implements subroutineCall)
         """
-        self.advance()                                  # Skips 'do'
+        self.advance()  # Skips 'do'
         # SUBROUTINE
-        self._compile_subroutine_call()                 # Compile subroutine call
-        self._vmw.write_pop(segment='temp', index=0)    # Clear Garbage
-        self.advance()                                  # Skips ';'
+        self._compile_subroutine_call()  # Compile subroutine call
+        self._vmw.write_pop(segment='temp', index=0)  # Clear Garbage
+        self.advance()  # Skips ';'
 
     def compile_if(self) -> None:
         """
         Compiles an 'if' statement
         """
         label_count = self.get_label_counter()
-        self.advance(skips=2)                                              # Skips 'if ('
-        self.compile_expression()                                          # EXPRESSION
-        self.advance(skips=2)                                              # Skips ') {'
+        self.advance(skips=2)  # Skips 'if ('
+        self.compile_expression()  # EXPRESSION
+        self.advance(skips=2)  # Skips ') {'
         self._vmw.write_if(f'FALSE{label_count}', is_neg=True)
-        self.compile_statements()                                          # STATEMENTS
-        self.advance()                                                     # Skips '}'
+        self.compile_statements()  # STATEMENTS
+        self.advance()  # Skips '}'
         self._vmw.write_goto(f'END-IF{label_count}')
         self._vmw.write_label(f'FALSE{label_count}')
         # ELSE
         if self.current_token.token_value == "else":
-            self.advance(skips=2)                                          # Skips 'else {'
-            self.compile_statements()                                      # STATEMENTS
-            self.advance()                                                 # Skips '}'
+            self.advance(skips=2)  # Skips 'else {'
+            self.compile_statements()  # STATEMENTS
+            self.advance()  # Skips '}'
         self._vmw.write_label(f'END-IF{label_count}')
 
     def compile_while(self) -> None:
@@ -243,17 +243,17 @@ class CompilationEngine(object):
         Compiles a 'while' statements
         """
         label_count = self.get_label_counter()
-        self.advance(skips=2)                                             # Skips 'while ('
+        self.advance(skips=2)  # Skips 'while ('
         self._vmw.write_label('WHILE', label_count)
-        self.compile_expression()                                         # EXPRESSION
+        self.compile_expression()  # EXPRESSION
 
-        self.advance(skips=2)                                             # Skips ') {'
-        self._vmw.write_if(f'FALSE{label_count}', is_neg=True)            # IF LABEL
-        self.compile_statements()                                         # STATEMENTS
+        self.advance(skips=2)  # Skips ') {'
+        self._vmw.write_if(f'FALSE{label_count}', is_neg=True)  # IF LABEL
+        self.compile_statements()  # STATEMENTS
 
         self._vmw.write_goto(f'WHILE{label_count}')
         self._vmw.write_label(f'FALSE{label_count}')
-        self.advance()                                                    # Skips '}'
+        self.advance()  # Skips '}'
 
     def compile_return(self) -> None:
         """
@@ -262,7 +262,7 @@ class CompilationEngine(object):
         self.advance()
 
         if self.current_token.token_value != ';':
-            self.compile_expression()   # EXPRESSION
+            self.compile_expression()  # EXPRESSION
         else:
             self._vmw.write_push(segment='constant', index=0)
 
@@ -273,13 +273,13 @@ class CompilationEngine(object):
         """
         Compiles an expression
         """
-        self.compile_term()                                     # TERM
+        self.compile_term()  # TERM
 
-        while self.current_token.token_value in Syntax.OP:      # (OP TERM) *
+        while self.current_token.token_value in Syntax.OP:  # (OP TERM) *
             op = self.current_token.token_value
-            self.advance()                   # Advance to term
-            self.compile_term()              # Compile term
-            self._vmw.write_arithmetic(op)   # Writes arithmetic op
+            self.advance()  # Advance to term
+            self.compile_term()  # Compile term
+            self._vmw.write_arithmetic(op)  # Writes arithmetic op
 
     def compile_term(self) -> None:
         """
@@ -292,14 +292,14 @@ class CompilationEngine(object):
         """
         # (EXPRESSION)
         if self.current_token.token_value == '(':
-            self.advance()                  # Skips "("
-            self.compile_expression()       # compile expression
-            self.advance()                  # Skips ")"
+            self.advance()  # Skips "("
+            self.compile_expression()  # compile expression
+            self.advance()  # Skips ")"
         # UnaryOperation TERM
         elif self.current_token.token_value in {'-', '~'}:
-            unary_op = self.advance()[0]                             # Skips unary-op
-            self.compile_term()                                      # compile term
-            self._vmw.write_arithmetic(unary_op, op_type='unary')    # compile unary-op
+            unary_op = self.advance()[0]  # Skips unary-op
+            self.compile_term()  # compile term
+            self._vmw.write_arithmetic(unary_op, op_type='unary')  # compile unary-op
         # integerConstant TERM
         elif self.current_token.token_type == 'integerConstant':
             self._vmw.write_integer_const(const=self.current_token.token_value)
@@ -314,23 +314,23 @@ class CompilationEngine(object):
         # KEYWORDS
         elif self.current_token.token_type == "keyword":
             if self.current_token.token_value == "this":
-                self._vmw.write_push(segment='pointer', index=0)                # compile this
+                self._vmw.write_push(segment='pointer', index=0)  # compile this
             elif self.current_token.token_value in {'null', 'false', 'true'}:
-                self._vmw.write_integer_const(0)                                 # compile null, false, true
+                self._vmw.write_integer_const(0)  # compile null, false, true
                 if self.current_token.token_value == 'true':
                     self._vmw.write_arithmetic('~', op_type='unary')
             self.advance()
         # Array
         elif self.next_token.token_value == '[':
-            var_name = self.advance()[0]                    # Get var_name
+            var_name = self.advance()[0]  # Get var_name
 
             # EXPRESSION - push desire Array index
-            self.advance()                                  # Skips "["
-            self.compile_expression()                       # EXPRESSION
-            self.advance()                                  # Skips "]"
+            self.advance()  # Skips "["
+            self.compile_expression()  # EXPRESSION
+            self.advance()  # Skips "]"
             self._vmw.write_push(segment=self._symbol_table.kind_of(var_name),
                                  index=self._symbol_table.index_of(var_name))
-            self._vmw.write_arithmetic("+")                 # push the absolut memory index
+            self._vmw.write_arithmetic("+")  # push the absolut memory index
             self._vmw.write_pop('pointer', 1)
             self._vmw.write_push('that', 0)
         # varName - Must be a Symbol at this stage.
@@ -393,15 +393,15 @@ class CompilationEngine(object):
 
         # subroutineName(
         if self.next_token.token_value == '(':
-            self.advance()      # Advance to '('
+            self.advance()  # Advance to '('
             if is_method:
                 n_args = 1
                 self._vmw.write_push(segment='pointer', index=0)
             # (EXPRESSION LIST)
-            self.advance()      # Skips '('
-            n_args += self.compile_expression_list()    # EXPRESSION LIST
+            self.advance()  # Skips '('
+            n_args += self.compile_expression_list()  # EXPRESSION LIST
             self._vmw.write_call(name=f'{class_name}.{name}', n_args=n_args)
-            self.advance()      # Skips ')'
+            self.advance()  # Skips ')'
 
         return n_args
 
