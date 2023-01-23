@@ -15,7 +15,7 @@ class JackCompiler(object):
     def __init__(self, input_path: str):
         self._set_io_files(input_path)
         self.tokenizer = JackTokenizer()
-        self.engine = CompilationEngine(tokenizer=self.tokenizer, debug=True)
+        self.engine = CompilationEngine(tokenizer=self.tokenizer, debug=False)
 
     def close(self) -> None:
         """
@@ -34,7 +34,7 @@ class JackCompiler(object):
             self.engine.set_out_file(prog)
             if self.tokenizer.has_more_tokens():
                 self.engine.compile_class()
-        self.close()
+            self.close()
 
     def _set_io_files(self, path: str) -> None:
         """

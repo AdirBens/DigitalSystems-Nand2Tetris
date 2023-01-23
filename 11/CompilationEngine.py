@@ -48,7 +48,7 @@ class CompilationEngine(object):
         self._out_file = open(new_outfile, 'w')
         self._vmw.set_outfile(self._out_file)
 
-    def advance(self, skips: int = 1) -> list[str]:
+    def advance(self, skips = 1):
         """
         Handles current_token and next_token reading by invoke JackTokenizer.advance()
         Args: [OPTIONAL] skips (int) - number of tokens to skip, after skipping, the current_token sets to be the
@@ -83,7 +83,7 @@ class CompilationEngine(object):
 
         self.advance()  # Skips '}'
 
-    def compile_var_dec(self, force_kind: bool = True) -> None:
+    def compile_var_dec(self, force_kind = True) -> None:
         """
         Compiles a static declaration or a field declaration.
         Args: [OPTIONAL] force_kind (bool; default = True) - Useful in general var declaration
@@ -121,7 +121,7 @@ class CompilationEngine(object):
         self.compile_parameter_list()       # PARAMETER LIST
         self.advance()                      # Skips ')'
         # SUBROUTINE BODY
-        self.compile_subroutine_body(subroutine_name, subroutine_type)
+        self.compile_subroutine_body(subroutine_name, subroutine_kind)
 
     def compile_parameter_list(self) -> None:
         """
@@ -135,7 +135,7 @@ class CompilationEngine(object):
             if self.current_token.token_value == ',':
                 self.advance()
 
-    def compile_subroutine_body(self, subroutine_name: str, subroutine_type: str) -> None:
+    def compile_subroutine_body(self, subroutine_name: str, subroutine_kind: str) -> None:
         """
         Compile Subroutine body section - { VAR DEC } STATEMENTS
         Args: subroutine_name (str) - the name of this subroutine
@@ -149,11 +149,11 @@ class CompilationEngine(object):
         # Compile 'function <subroutine_full_name> <number of arguments>
         self._vmw.write_function(name=subroutine_name, class_name=self._current_class,
                                  l_locals=self._symbol_table.var_count("local"))
-        if subroutine_type == "constructor":    # Memory Allocation and initialize new object
+        if subroutine_kind == "constructor":    # Memory Allocation and initialize new object
             self._vmw.write_push(segment='constant', index=self._symbol_table.var_count("field"))
             self._vmw.write_call(name='alloc', class_name='Memory', n_args=1)
             self._vmw.write_pop(segment='pointer', index=0)
-        elif subroutine_type == "method":
+        elif subroutine_kind == "method":
             self._vmw.write_push(segment='argument', index=0)
             self._vmw.write_pop(segment='pointer', index=0)
 
@@ -381,6 +381,7 @@ class CompilationEngine(object):
         #   OR (className | varName).subroutineName(
         if self.next_token.token_value == '.':
             is_method = False
+            class_name = name
             # Read (className | varName) ".", and checks if current token value is a symbol
             is_symbol = self._symbol_table.get_symbol(self.advance(skips=2)[0])
             name = self.current_token.token_value
@@ -389,6 +390,7 @@ class CompilationEngine(object):
                 self._vmw.write_push(segment=self._symbol_table.kind_of(class_name),
                                      index=self._symbol_table.index_of(class_name))
                 class_name = self._symbol_table.type_of(class_name)
+
         # subroutineName(
         if self.next_token.token_value == '(':
             self.advance()      # Advance to '('

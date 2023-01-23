@@ -63,7 +63,7 @@ class SymbolTable(object):
         elif (symbol := self._class_table.get(name, None)) is not None:
             return symbol.kind
 
-    def type_of(self, name: str) -> str | None:
+    def type_of(self, name: str):
         """
         Args: name (str) - name of a symbol
         Returns: (str) The type of the named identifier in the current scope.
@@ -74,7 +74,7 @@ class SymbolTable(object):
             return symbol.type
         return None
 
-    def index_of(self, name: str) -> int | None:
+    def index_of(self, name: str):
         """
         Args: name (str) - name of a symbol
         Returns: (int) The index assigned to the named identifier.
@@ -92,4 +92,3 @@ class SymbolTable(object):
         self._counter.clear()
         self._class_table.clear()
         self._subroutine_table = None
-
