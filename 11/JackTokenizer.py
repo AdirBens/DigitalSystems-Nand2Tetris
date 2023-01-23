@@ -21,8 +21,7 @@ class JackTokenizer(object):
     def set_input_file(self, input_path) -> None:
         """
         Open input file and Sets it as JackTokenizer's input_file
-        Args:
-            input_path (.jack program path as string or as a pathlib.Path object)
+        Args: input_path (.jack program path as string or as a pathlib.Path object)
         """
         if self.file_iterator:
             self.close()
@@ -53,6 +52,7 @@ class JackTokenizer(object):
 
         for terminal, matcher in Syntax.TERMINALS.items():
             if token := matcher.match(buffer):
+
                 token_value = token.group(0)
                 if terminal != "inlineComment":
                     self._current_token = Token(token_type=terminal, token_value=token_value)
