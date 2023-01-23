@@ -323,8 +323,6 @@ class CompilationEngine(object):
         # Array
         elif self.next_token.token_value == '[':
             var_name = self.advance()[0]                    # Get var_name
-            kind = self._symbol_table.kind_of(var_name)
-            index = self._symbol_table.index_of(var_name)
 
             # EXPRESSION - push desire Array index
             self.advance()                                  # Skips "["
